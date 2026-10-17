@@ -12,6 +12,9 @@ Returns a clean data.frame when using hd_obj$matrix}
 
 \item{name}{The field to extract}
 }
+\value{
+A data frame containing the underlying data matrix.
+}
 \description{
 Custom \code{$} operator for hdClass
 Returns a clean data.frame when using hd_obj$matrix

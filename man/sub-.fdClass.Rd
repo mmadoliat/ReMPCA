@@ -19,3 +19,8 @@ A new \code{fdClass} object with subsetted data and inherited attributes.
 \description{
 Enables subsetting of an \code{fdClass} object by rows and columns.
 }
+\examples{
+fd <- fdClass(matrix(rnorm(200), 10, 20))
+fd[1:5, 1:10]
+
+}

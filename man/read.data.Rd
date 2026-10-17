@@ -4,11 +4,11 @@
 \alias{read.data}
 \title{Read ReMPCA Example Data}
 \usage{
-read.data(data = c("bike_day", "bike_hour"))
+read.data(data = c("bike_day", "bike_hour", "energydata"))
 }
 \arguments{
 \item{data}{Character string specifying the dataset to load.
-Available options are \code{"bike_day"} and \code{"bike_hour"}.}
+Available options are \code{"bike_day"}, \code{"bike_hour"}, and \code{"energydata"}.}
 }
 \value{
 The requested dataset as a data frame.
@@ -19,5 +19,6 @@ Loads one of the datasets included with the ReMPCA package.
 \examples{
 bike_day <- read.data("bike_day")
 bike_hour <- read.data("bike_hour")
+energy <- read.data("energydata")
 
 }

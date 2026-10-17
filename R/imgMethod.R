@@ -77,12 +77,13 @@ print.imgClass <- function(x, ...) {
 #'
 #' @param x An object of class 'imgClass'
 #' @param name The name of the element to extract
+#' @return A data frame containing the underlying data matrix.
 #' @export
 `$.imgClass` <- function(x, name) {
   if (name == "matrix") {
     return(as.data.frame(unclass(x)))
   } else {
-    stop(sprintf("Unknown field '%s'. Only 'matrix' is supported for imgClass."), call. = FALSE)
+    stop(sprintf("Unknown field '%s'. Only 'matrix' is supported for imgClass.", name), call. = FALSE)
   }
 }
 
@@ -154,8 +155,8 @@ as.imgClass <- function(x,
 #' Plot Method for imgClass Objects
 #'
 #' Visualizes a list of image matrices stored in an \code{imgClass} object.
-#' Each image is shown one at a time. The user is prompted to press Enter or
-#' click on the graphics window to advance to the next image.
+#' Each image is shown one at a time. In interactive sessions the user is
+#' prompted to press Enter to advance to the next image.
 #'
 #' @param x An object of class \code{imgClass}, created using \code{imgClass()}.
 #' @param ... Additional graphical parameters passed to plotting functions.
@@ -185,10 +186,10 @@ plot.imgClass <- function(x, ...) {
     nrow_img <- attr(x, "nrow")
     ncol_img <- ncol(x) / nrow_img
     for (i in 1:n_imgs) {
-      img <- matrix(data[i, ], nrow = nrow_img)
-      img <- matrix(as.numeric(img), nrow = nrow(img))
-      image(img, main = paste("Image", i))
-      if(n_imgs>=2 && i<= n_imgs -1){
+      # Images were vectorized row by row in imgClass(), so rebuild by row
+      img <- matrix(as.numeric(unlist(data[i, ])), nrow = nrow_img, byrow = TRUE)
+      image(img, main = paste("Image", i), ...)
+      if (interactive() && n_imgs >= 2 && i <= n_imgs - 1) {
         readline(prompt = "Press [Enter] or click to continue...")
       }
     }
@@ -196,7 +197,7 @@ plot.imgClass <- function(x, ...) {
     stop("Unknown image structure. Missing 'nrow' attribute!")
   }
 
-  invisible()
+  invisible(NULL)
 }
 
 #' Multiply a `imgClass` Object by a Scalar
@@ -216,12 +217,12 @@ plot.imgClass <- function(x, ...) {
 #' @export
 `*.imgClass` <- function(e1, e2) {
   if (is.numeric(e1) && inherits(e2, "imgClass")) {
-    out_data <- lapply(unclass(e2), function(mat) e1 * mat)
+    out_data <- e1 * unclass(e2)
     attributes(out_data) <- attributes(e2)
     class(out_data) <- class(e2)
     return(out_data)
   } else if (is.numeric(e2) && inherits(e1, "imgClass")) {
-    out_data <- lapply(unclass(e1), function(mat) e2 * mat)
+    out_data <- e2 * unclass(e1)
     attributes(out_data) <- attributes(e1)
     class(out_data) <- class(e1)
     return(out_data)
@@ -236,6 +237,11 @@ plot.imgClass <- function(x, ...) {
 #'
 #' @param x An object of class \code{imgClass}.
 #' @param i Row indices (Images). If \code{NULL}, all images are included.
+#'
+#' @examples
+#' imgs <- lapply(1:3, function(k) matrix(rnorm(16), 4, 4))
+#' img <- imgClass(imgs)
+#' img[1:2]
 #'
 #' @return A new \code{imgClass} object with subsetted data and inherited attributes.
 #'
@@ -252,13 +258,11 @@ plot.imgClass <- function(x, ...) {
   # Bounds check
   if (any(i < 1 | i > n)) stop("Row index out of bounds.")
 
-  # Subset data matrix
-  data <- x$matrix
-  data_sub <- list(as.matrix(data[i, ]))
-
-  # Construct and return new hdClass object
-  imgClass(image = data_sub,
-          Sparsity_parameter = attr(x, "Sparsity_parameter"),
-          Smoothing_parameter = attr(x, "Smoothing_parameter"),
-          argval = attr(x, "argval"))
+  # Subset the rows (images) and keep all image attributes
+  out <- unclass(x)[i, , drop = FALSE]
+  attrs <- attributes(x)
+  attrs$dim <- dim(out)
+  attrs$dimnames <- NULL
+  attributes(out) <- attrs
+  out
 }

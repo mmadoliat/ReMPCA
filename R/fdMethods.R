@@ -61,12 +61,13 @@ print.fdClass <- function(x, ...) {
 #'
 #' @param x An object of class 'fdClass'
 #' @param name The name of the element to extract
+#' @return A data frame containing the underlying data matrix.
 #' @export
 `$.fdClass` <- function(x, name) {
   if (name == "matrix") {
     return(as.data.frame(unclass(x)))
   } else {
-    stop(sprintf("Unknown field '%s'. Only 'matrix' is supported for fdClass."), call. = FALSE)
+    stop(sprintf("Unknown field '%s'. Only 'matrix' is supported for fdClass.", name), call. = FALSE)
   }
 }
 
@@ -189,6 +190,10 @@ plot.fdClass <- function(x, ...) {
 #' @param i Row indices (observations). If \code{NULL}, all rows are included.
 #' @param j Column indices (grid points). If \code{NULL}, all columns are included.
 #'
+#' @examples
+#' fd <- fdClass(matrix(rnorm(200), 10, 20))
+#' fd[1:5, 1:10]
+#'
 #' @return A new \code{fdClass} object with subsetted data and inherited attributes.
 #'
 #' @export
@@ -209,11 +214,17 @@ plot.fdClass <- function(x, ...) {
 
   # Subset data matrix
   data <- x$matrix
-  data_sub <- as.matrix(data[i, j])
+  data_sub <- as.matrix(data[i, j, drop = FALSE])
+  dimnames(data_sub) <- NULL
 
-  # Construct and return new hdClass object
+  # Keep only sparsity levels that remain valid for the retained columns
+  sp <- attr(x, "Sparsity_parameter")
+  sp <- sp[sp <= length(j) - 1]
+  if (length(sp) == 0) sp <- 0
+
+  # Construct and return new fdClass object (grid points subset with columns)
   fdClass(data = data_sub,
-          Sparsity_parameter = attr(x, "Sparsity_parameter"),
+          Sparsity_parameter = sp,
           Smoothing_parameter = attr(x, "Smoothing_parameter"),
-          argval = attr(x, "GridPoints_v"))
+          argval = attr(x, "GridPoints_v")[j])
 }

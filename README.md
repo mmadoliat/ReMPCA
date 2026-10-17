@@ -2,13 +2,9 @@
 # ReMPCA Package<img src="man/figures/hexagon.png" width = "170" height = "170" align="right" />
 
 <!-- badges: start -->
-
 <!--[![R-CMD-check](https://github.com/mobinapourmoshir/ReMPCA/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/mobinapourmoshir/ReMPCA/actions/workflows/R-CMD-check.yaml)-->
-
 <!-- badges: end -->
-
 <!-- badges: start -->
-
 <!-- badges: end -->
 
 ReMPCA is an R package designed to extend Principal Component Analysis
@@ -36,7 +32,7 @@ and yielding a reconstruction close to the true chessboard. More
 importantly, regularizing both directions simultaneously is more
 effective than separate one-way penalties, better preserving the data’s
 true structure.
-<img src="./man/figures/chess.png" alt="" width="100%" style="display: block; margin: auto;" />
+<img src="./man/figures/chess.png" width="100%" style="display: block; margin: auto;" />
 
 ## Installation 
 
@@ -49,33 +45,24 @@ remotes::install_github("mobinapourmoshir/ReMPCA")
 
 ## Data and analysis code
 
-The data and analysis code used for the real-data applications are
-included in this repository to support reproducibility.
+The data and analysis code used for the real-data applications in the
+accompanying paper are included in the package to support
+reproducibility.
 
-### Bike Sharing application
-
-The data files used for the Bike Sharing analysis are available in the
-[`data`](data) folder:
-
-- [`bike_day.rda`](data/bike_day.rda)
-- [`bike_hour.rda`](data/bike_hour.rda)
-
-The complete R code used for the analysis is available in the
-[`inst`](inst) folder as
-[`ReMPCA_bike_example.R`](inst/ReMPCA_bike_example.R).
-
-### Appliances Energy Prediction application
-
-The data used for the Appliances Energy Prediction analysis are
-available in the [`data`](data) folder as
-[`energydata_complete.rda`](data/energydata_complete.rda).
-
-The complete R code used for the analysis is available in the
-[`inst`](inst) folder as
-[`ReMPCA_appliances_example.R`](inst/ReMPCA_appliances_example.R).
-
-These materials can be used to reproduce the analyses, tables, and
-figures presented in the paper and supplementary material.
+- **Data.** The UCI Bike Sharing data (`bike_day`, `bike_hour`) and the
+  UCI Appliances Energy Prediction data (`energydata`) are shipped with
+  the package; see `?bike_day`, `?bike_hour`, `?energydata`, or load
+  them with `read.data()`.
+- **Code.** The scripts in
+  [`inst/reproducibility`](inst/reproducibility) reproduce the figures
+  of the Bike Sharing application
+  ([`ReMPCA_bike_example.R`](inst/reproducibility/ReMPCA_bike_example.R))
+  and of the Appliances Energy Prediction application in the
+  supplementary material
+  ([`Appliances_Energy_Example.R`](inst/reproducibility/Appliances_Energy_Example.R)).
+  See [`inst/reproducibility/README.md`](inst/reproducibility/README.md)
+  for instructions. After installation the scripts are available from
+  `system.file("reproducibility", package = "ReMPCA")`.
 
 ## Example
 
@@ -316,17 +303,6 @@ produced as follows:
 # CV Plot for tuning sparsity for u 
 plot_cv_u(ReMPCATest)
 ```
-
-    ## Warning in arrows(gamma_vals, cv_means - cv_ses, gamma_vals, cv_means + :
-    ## zero-length arrow is of indeterminate angle and so skipped
-    ## Warning in arrows(gamma_vals, cv_means - cv_ses, gamma_vals, cv_means + :
-    ## zero-length arrow is of indeterminate angle and so skipped
-    ## Warning in arrows(gamma_vals, cv_means - cv_ses, gamma_vals, cv_means + :
-    ## zero-length arrow is of indeterminate angle and so skipped
-    ## Warning in arrows(gamma_vals, cv_means - cv_ses, gamma_vals, cv_means + :
-    ## zero-length arrow is of indeterminate angle and so skipped
-    ## Warning in arrows(gamma_vals, cv_means - cv_ses, gamma_vals, cv_means + :
-    ## zero-length arrow is of indeterminate angle and so skipped
 
 ![](man/figures/README-unnamed-chunk-9-1.png)<!-- -->
 

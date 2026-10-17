@@ -19,3 +19,8 @@ A new \code{rdClass} object with subsetted data and inherited attributes.
 \description{
 Enables subsetting of an \code{rdClass} object by rows and columns.
 }
+\examples{
+rd <- rdClass(matrix(rnorm(50), 10, 5))
+rd[1:3, 2:4]
+
+}

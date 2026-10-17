@@ -9,16 +9,17 @@ hdClass(hdlist, argval = NULL, Smoothing_parameter = 0, Sparsity_parameter = 0)
 \arguments{
 \item{hdlist}{A list of \code{fdClass}, \code{rdClass}, or \code{imgClass} objects.}
 
-\item{argval}{Optional numeric vector of grid points along the rows. If \code{NULL}, it defaults to a uniform grid over 0 and 1.}
+\item{argval}{Optional numeric vector of grid points along the rows. If \code{NULL}, it defaults to a uniform grid on (0, 1].}
 
-\item{Smoothing_parameter}{Smoothing parameter(s) for the rows:
+\item{Smoothing_parameter}{Smoothing parameter(s) for the rows (default 0):
 \itemize{
 \item If 0, no smoothing is applied.
 \item If a numeric value or vector, it is used directly.
 \item If \code{NULL}, defaults to \code{2^seq(-30, 5, length.out = 10)} for tuning.
 }}
 
-\item{Sparsity_parameter}{Sparsity parameter(s) for the rows:
+\item{Sparsity_parameter}{Sparsity parameter(s) for the rows (default 0), i.e. the number of
+row scores set to zero:
 \itemize{
 \item If 0, no sparsity is applied.
 \item If a numeric vector, it is used for tuning.

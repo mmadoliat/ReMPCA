@@ -1,5 +1,19 @@
 ###############################################################################
 # UCI Appliances Energy Prediction Dataset
+#
+# Reproduces the Supplementary Material of Pourmoshir and Maadooliat
+# (Journal of Data Science), Section "Additional Application: Appliances
+# Energy Prediction":
+#   - Figure S1 -> appliances_compare_u_and_v_HPCA_ReHPCA_PC_specific.pdf
+#   - Figure S2 -> appliances_ReHPCA_mean_plus_minus_PC1_PC2_symbols.pdf
+#   - Figure S3 -> appliances_u_scores_HPCA_vs_ReHPCA.pdf
+#
+# Usage (from any working directory, after installing ReMPCA):
+#   source(system.file("reproducibility", "Appliances_Energy_Example.R",
+#                      package = "ReMPCA"))
+# Figures and fitted objects are written to the folder given by the
+# environment variable REMPCA_OUTPUT_DIR (default: ./ReMPCA_output).
+# Additional packages required: tidyverse, lubridate, patchwork, scales.
 ###############################################################################
 
 ###############################################################################
@@ -16,7 +30,10 @@ library(scales)
 # 1. Load the UCI Appliances Energy Prediction data
 ###############################################################################
 
-load(file.path("data", "energydata.rda"))
+# The UCI Appliances Energy Prediction data are shipped with the package
+# (see ?energydata).
+data("energydata", package = "ReMPCA")
+appliance_dat <- energydata
 
 appliance_dat$date <- ymd_hms(appliance_dat$date)
 
@@ -1812,3 +1829,60 @@ p_mean_pm_pc <- wrap_plots(
 print(p_mean_pm_pc)
 
 
+
+###############################################################################
+# 17. Ordered-day scores (Figure S3): colored by month, sized by daily energy
+###############################################################################
+
+daily_energy <- appliance_complete |>
+  group_by(day) |>
+  summarize(Total_appliance_energy = sum(Appliances), .groups = "drop")
+
+score_s3_df <- score_df |>
+  left_join(daily_energy, by = c("date" = "day")) |>
+  mutate(
+    Method = factor(Method, levels = method_levels),
+    Month = factor(format(date, "%b"), levels = unique(format(sort(date), "%b")))
+  ) |>
+  pivot_longer(cols = starts_with("PC"), names_to = "PC", values_to = "Score") |>
+  mutate(PC = factor(PC, levels = pc_levels))
+
+p_appliance_u_scores <- ggplot(score_s3_df, aes(x = date, y = Score)) +
+  geom_hline(yintercept = 0, linewidth = 0.25, color = "grey50") +
+  geom_line(color = "grey60", linewidth = 0.3) +
+  geom_point(aes(color = Month, size = Total_appliance_energy), alpha = 0.8) +
+  facet_grid(PC ~ Method, scales = "free_y") +
+  scale_size_continuous(range = c(0.4, 2.8), name = "Daily appliance energy (Wh)") +
+  scale_x_date(date_breaks = "1 month", date_labels = "%b") +
+  labs(x = NULL, y = "Score") +
+  theme_bw(base_size = 10) +
+  theme(legend.position = "bottom", legend.box = "vertical")
+
+print(p_appliance_u_scores)
+
+###############################################################################
+# 18. Save the supplementary figures and fitted objects
+###############################################################################
+
+out_dir <- Sys.getenv("REMPCA_OUTPUT_DIR", unset = file.path(getwd(), "ReMPCA_output"))
+dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
+
+ggsave(file.path(out_dir, "appliances_compare_u_and_v_HPCA_ReHPCA_PC_specific.pdf"),
+       p_appliance_combined, width = 12, height = 9)
+ggsave(file.path(out_dir, "appliances_ReHPCA_mean_plus_minus_PC1_PC2_symbols.pdf"),
+       p_mean_pm_pc, width = 14, height = 6)
+ggsave(file.path(out_dir, "appliances_u_scores_HPCA_vs_ReHPCA.pdf"),
+       p_appliance_u_scores, width = 9, height = 6)
+
+saveRDS(
+  list(
+    fit_hpca = fit_hpca,
+    fit_rehpca_pc1 = fit_rehpca_pc1,
+    fit_rehpca_pc2 = fit_rehpca_pc2,
+    fit_rehpca = fit_rehpca
+  ),
+  file.path(out_dir, "appliances_fits.rds")
+)
+
+writeLines(capture.output(sessionInfo()), file.path(out_dir, "appliances_sessionInfo.txt"))
+cat("\nAppliances outputs written to:", out_dir, "\n")

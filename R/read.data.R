@@ -3,16 +3,17 @@
 #' Loads one of the datasets included with the ReMPCA package.
 #'
 #' @param data Character string specifying the dataset to load.
-#'   Available options are `"bike_day"` and `"bike_hour"`.
+#'   Available options are `"bike_day"`, `"bike_hour"`, and `"energydata"`.
 #'
 #' @return The requested dataset as a data frame.
 #'
 #' @examples
 #' bike_day <- read.data("bike_day")
 #' bike_hour <- read.data("bike_hour")
+#' energy <- read.data("energydata")
 #'
 #' @export
-read.data <- function(data = c("bike_day", "bike_hour")) {
+read.data <- function(data = c("bike_day", "bike_hour", "energydata")) {
 
   data <- match.arg(data)
 

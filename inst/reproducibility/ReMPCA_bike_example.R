@@ -8,6 +8,22 @@
 #   4) fits PC1 on the original data with penalties
 #   5) deflates the data and fits PC2 with penalties
 #   6) reproduces the comparison plots
+#
+# Reproduces (Pourmoshir and Maadooliat, Journal of Data Science):
+#   - Table of bike-sharing variables (hybrid representation)
+#   - Figure "Comparison of HPCA and ReHPCA components"
+#       -> bike_compare_u_and_v_HPCA_ReHPCA.pdf
+#   - Figure "Daily-hour reconstructed heatmaps"
+#       -> heatmap_HPCA_vs_ReHPCA_fitted.pdf
+#   - Figure "Mean curves plus and minus the first two ReHPCA functional PCs"
+#       -> bike_mean_ReHPCA.pdf
+#
+# Usage (from any working directory, after installing ReMPCA):
+#   source(system.file("reproducibility", "ReMPCA_bike_example.R",
+#                      package = "ReMPCA"))
+# Figures and fitted objects are written to the folder given by the
+# environment variable REMPCA_OUTPUT_DIR (default: ./ReMPCA_output).
+# Additional packages required: tidyverse, lubridate, patchwork.
 ###############################################################################
 
 ###############################################################################
@@ -23,8 +39,9 @@ library(patchwork)
 # 1. Load package data
 ###############################################################################
 
-load(file.path("data", "bike_day.rda"))
-load(file.path("data", "bike_hour.rda"))
+# The UCI Bike Sharing data are shipped with the package (see ?bike_day).
+data("bike_day", package = "ReMPCA")
+data("bike_hour", package = "ReMPCA")
 
 day_dat  <- bike_day
 hour_dat <- bike_hour
@@ -2022,3 +2039,30 @@ try(
   ),
   silent = TRUE
 )
+
+###############################################################################
+# 17. Save the manuscript figures and fitted objects
+###############################################################################
+
+out_dir <- Sys.getenv("REMPCA_OUTPUT_DIR", unset = file.path(getwd(), "ReMPCA_output"))
+dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
+
+ggsave(file.path(out_dir, "bike_compare_u_and_v_HPCA_ReHPCA.pdf"),
+       p_bike_combined, width = 12, height = 9)
+ggsave(file.path(out_dir, "heatmap_HPCA_vs_ReHPCA_fitted.pdf"),
+       p_fitted_heatmaps, width = 12, height = 6)
+ggsave(file.path(out_dir, "bike_mean_ReHPCA.pdf"),
+       p_mean_pm_rehpca, width = 12, height = 6)
+
+saveRDS(
+  list(
+    bike_fit_base = bike_fit_base,
+    bike_fit_pc1 = bike_fit_pc1,
+    bike_fit_pc2_residual = bike_fit_pc2_residual,
+    bike_fit_pc_specific = bike_fit_pc_specific
+  ),
+  file.path(out_dir, "bike_fits.rds")
+)
+
+writeLines(capture.output(sessionInfo()), file.path(out_dir, "bike_sessionInfo.txt"))
+cat("\nBike-sharing outputs written to:", out_dir, "\n")

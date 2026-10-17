@@ -12,6 +12,9 @@ Allows access to the underlying data matrix via \code{img$matrix}}
 
 \item{name}{The name of the element to extract}
 }
+\value{
+A data frame containing the underlying data matrix.
+}
 \description{
 Custom \code{$} operator for imgClass
 Allows access to the underlying data matrix via \code{img$matrix}

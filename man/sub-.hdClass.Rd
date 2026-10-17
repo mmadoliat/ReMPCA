@@ -17,3 +17,9 @@ A new \code{hdClass} object with subsetted data and inherited attributes.
 \description{
 Enables subsetting of an \code{hdClass} object by variables.
 }
+\examples{
+hd <- hdClass(list(fdClass(matrix(rnorm(100), 10)), rdClass(matrix(rnorm(30), 10))))
+hd[2]
+
+
+}

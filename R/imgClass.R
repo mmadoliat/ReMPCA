@@ -2,13 +2,13 @@
 #'
 #' @description
 #' The `imgClass` class is designed to handle images:
-#' - Supports either a single image (a matrix) or a list of multiple images (matrices).
-#' - When a list is provided, all images are vectorized (row-wise) and combined into one matrix.
+#' - Takes a list of images (matrices of equal dimension); a single image must be wrapped in \code{list()}.
+#' - All images are vectorized (row-wise) and combined into one matrix, with one row per image.
 #' - The resulting object behaves like a `fdClass` if `Smoothing_parameter` is not zero, otherwise as a `rdClass`.
 #' - Grid points (optional) are assigned to the columns (i.e., pixel locations).
 #'
-#' @param image A matrix representing a single image or a list of matrices representing multiple images.
-#'              Each image must be a matrix of the same dimension.
+#' @param image A list of matrices, one per image (observation). All images must have
+#'              the same dimension. Wrap a single image as \code{list(img)}.
 #' @param Smoothing_parameter
 #'   - A numeric scalar or vector controlling the level of smoothing (as in `fdClass`).
 #'   - Set to 0 for no smoothing (produces an `rdClass` object).
@@ -49,13 +49,13 @@ imgClass <- function(image,
 
   # Determine whether smoothing is needed
   if (all(Smoothing_parameter != 0)) {
-    # Smoothing is requested → treat as fdClass and ignore argval
+    # Smoothing is requested -> treat as fdClass and ignore argval
     x <- fdClass(data = data,
                  argval = NULL,
                  Smoothing_parameter = Smoothing_parameter,
                  Sparsity_parameter = Sparsity_parameter)
   } else {
-    # No smoothing → treat as regular data class
+    # No smoothing -> treat as regular data class
     x <- rdClass(data = data,
                  Sparsity_parameter = Sparsity_parameter)
   }

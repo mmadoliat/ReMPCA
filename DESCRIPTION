@@ -1,21 +1,38 @@
 Package: ReMPCA
-Date: 2024-7-10
-Title: What the Package Does (One Line, Title Case)
-Version: 0.0.0.9000
+Title: Regularized Principal Component Analysis for Hybrid Data
+Version: 0.1.0
 Authors@R: c(
-    person("Mobina", "Pourmoshir", , "mobina.pourmoshir@marqueete.edu", role = c("aut", "cre")),
-    person("Mehdi", "Maadooliat", email = "mehdi.maadooliat@mu.edu", role = "aut")
+    person("Mobina", "Pourmoshir", , "mobina.pourmoshir@marquette.edu", role = c("aut", "cre", "cph")),
+    person("Mehdi", "Maadooliat", , "mehdi.maadooliat@mu.edu", role = "aut")
     )
-Description: ReMPCA is an R package designed to extend Principal Component Analysis (PCA) to complex, high-dimensional datasets—including curves, images, functional, and regular data. By integrating multiple data types within a single framework, ReMPCA captures intricate relationships across variables and domains, making it an ideal tool for structured data analysis in fields like imaging, signal processing, and functional data analysis.
+Description: Regularized principal component analysis for hybrid data, in which
+    functional variables (curves, images, or other gridded objects) and
+    non-functional (scalar or vector) variables are observed on a common set of
+    rows. Components are estimated by a regularized rank-one power algorithm
+    that allows block-specific smoothness and sparsity penalties on the
+    loadings and, for two-way data with ordered rows, on the scores. Smoothing
+    parameters are selected by generalized cross-validation and sparsity levels
+    by K-fold cross-validation. Ordinary, sparse, smooth functional,
+    multivariate functional, hybrid, and two-way regularized principal
+    component analysis arise as special cases. The approach builds on Huang,
+    Shen and Buja (2008) <doi:10.1214/08-EJS218>, Shen and Huang (2008)
+    <doi:10.1016/j.jmva.2007.06.007>, and Huang, Shen and Buja (2009)
+    <doi:10.1198/jasa.2009.tm08024>.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-Imports:
-  Matrix, 
-  doParallel,
-  foreach
-URL: https://mobinapourmoshir.github.io/ReMPCA/
-Depends: 
-    R (>= 3.5)
+Depends: R (>= 3.5)
+Imports: doParallel, foreach, graphics, grDevices, Matrix, parallel,
+        stats, utils, withr
+Suggests: testthat (>= 3.0.0)
+Config/testthat/edition: 3
+URL: https://github.com/mobinapourmoshir/ReMPCA,
+        https://mobinapourmoshir.github.io/ReMPCA/
+BugReports: https://github.com/mobinapourmoshir/ReMPCA/issues
 LazyData: true
 Config/roxygen2/version: 8.0.0
+NeedsCompilation: no
+Packaged: 2026-10-17 14:48:46 UTC; root
+Author: Mobina Pourmoshir [aut, cre, cph],
+  Mehdi Maadooliat [aut]
+Maintainer: Mobina Pourmoshir <mobina.pourmoshir@marquette.edu>

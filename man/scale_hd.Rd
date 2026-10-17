@@ -10,10 +10,12 @@ scale_hd(hd_obj)
 \item{hd_obj}{A hybrid data object of class \code{hdClass}.}
 }
 \value{
-A numeric vector of weights (length equals the number of variables in the hybrid data).
+A list with the block-weighted data (\code{scaled_hd}) and the numeric
+vector of weights (\code{weights}, one per variable).
 }
 \description{
 This function computes scaling weights for each component (column) in a \code{hdClass} object.
 The goal is to normalize the contributions of different functional variables by
 accounting for their scale, using the inverse of total variance (integrated over domain).
 }
+\keyword{internal}

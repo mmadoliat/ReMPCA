@@ -16,8 +16,8 @@ No return value. Called for its side effect (plotting).
 }
 \description{
 Visualizes a list of image matrices stored in an \code{imgClass} object.
-Each image is shown one at a time. The user is prompted to press Enter or
-click on the graphics window to advance to the next image.
+Each image is shown one at a time. In interactive sessions the user is
+prompted to press Enter to advance to the next image.
 }
 \examples{
 img_list <- list(matrix(rnorm(100), 10, 10),

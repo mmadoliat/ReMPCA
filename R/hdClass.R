@@ -22,12 +22,13 @@
 #' - `variable_types`: Character vector of type labels for each variable: `"hd"` (functional) or `"rd"` (raw).
 #'
 #' @param hdlist A list of `fdClass`, `rdClass`, or `imgClass` objects.
-#' @param argval Optional numeric vector of grid points along the rows. If `NULL`, it defaults to a uniform grid over 0 and 1.
-#' @param Smoothing_parameter Smoothing parameter(s) for the rows:
+#' @param argval Optional numeric vector of grid points along the rows. If `NULL`, it defaults to a uniform grid on (0, 1].
+#' @param Smoothing_parameter Smoothing parameter(s) for the rows (default 0):
 #'   - If 0, no smoothing is applied.
 #'   - If a numeric value or vector, it is used directly.
 #'   - If `NULL`, defaults to `2^seq(-30, 5, length.out = 10)` for tuning.
-#' @param Sparsity_parameter Sparsity parameter(s) for the rows:
+#' @param Sparsity_parameter Sparsity parameter(s) for the rows (default 0), i.e. the number of
+#'   row scores set to zero:
 #'   - If 0, no sparsity is applied.
 #'   - If a numeric vector, it is used for tuning.
 #'   - If `NULL`, a suitable default sequence is generated.

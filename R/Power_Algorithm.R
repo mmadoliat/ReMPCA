@@ -5,12 +5,12 @@ sparse_pen_fun <- function(y,
                            tuning_parameter,
                            type,alpha = 3.7) {
 
-  y_sorted <- sort(abs(y))
-  lambda <- y_sorted[tuning_parameter]
   if (tuning_parameter == 0 ||
       tuning_parameter > length(y)) {
     return(y)
   }
+  y_sorted <- sort(abs(y))
+  lambda <- y_sorted[tuning_parameter]
   if (type == "soft") {
     return(sign(y) * pmax(abs(y) - lambda, 0))
   }
@@ -29,6 +29,7 @@ sparse_pen_fun <- function(y,
     )
     return(res)
   }
+  stop("Unknown sparse_tuning_type '", type, "'; use 'soft', 'hard', or 'SCAD'.")
 }
 
 ##################### Calculating the norm of a vector #####################

@@ -116,12 +116,13 @@ print.hdClass <- function(x, ...) {
 #'
 #' @param x An object of class 'hdClass'
 #' @param name The field to extract
+#' @return A data frame containing the underlying data matrix.
 #' @export
 `$.hdClass` <- function(x, name) {
   if (name == "matrix") {
     return(as.data.frame(unclass(x)))  # convert matrix to plain data.frame
   } else {
-    stop(sprintf("Unknown field '%s'. Only 'matrix' is supported for hdClass."),
+    stop(sprintf("Unknown field '%s'. Only 'matrix' is supported for hdClass.", name),
          call. = FALSE)
   }
 }
@@ -285,7 +286,9 @@ setSmoothnessParameter <- function(obj, Smoothing_parameter) {
 #'
 #' @param hd_obj A hybrid data object of class `hdClass`.
 #'
-#' @return A numeric vector of weights (length equals the number of variables in the hybrid data).
+#' @return A list with the block-weighted data (\code{scaled_hd}) and the numeric
+#'   vector of weights (\code{weights}, one per variable).
+#' @keywords internal
 scale_hd <- function(hd_obj) {
   if (!inherits(hd_obj, "hdClass")) stop("Input must be of class 'hdClass'")
 
@@ -333,6 +336,8 @@ plot.hdClass <- function(x, ...) {
   ncol_list <- as.numeric(attr(x, "ncol"))
   var_types <- attr(x, "variable_types")
   data <- x$matrix
+  oldpar <- par(no.readonly = TRUE)
+  on.exit(par(oldpar))
   par(mfrow = c(1, n_var))
 
   start_idx <- 1
@@ -371,6 +376,10 @@ plot.hdClass <- function(x, ...) {
 #' @param x An object of class \code{hdClass}.
 #' @param k Variables indices. If \code{NULL}, all variables are included.
 #'
+#' @examples
+#' hd <- hdClass(list(fdClass(matrix(rnorm(100), 10)), rdClass(matrix(rnorm(30), 10))))
+#' hd[2]
+#'
 #'
 #' @return A new \code{hdClass} object with subsetted data and inherited attributes.
 #'
@@ -394,16 +403,16 @@ plot.hdClass <- function(x, ...) {
   col_ends <- cumsum(ncol_all)
   cols_to_keep <- unlist(mapply(seq, col_starts[k], col_ends[k], SIMPLIFY = FALSE))
 
-  # Subset the data matrix
-  data <- x$matrix
-  new_x <- data[, cols_to_keep]
+  # Subset the data matrix (keep it a plain numeric matrix)
+  new_x <- unclass(x)[, cols_to_keep, drop = FALSE]
+  attributes(new_x) <- list(dim = dim(new_x))
 
   # Preserve only relevant attributes
   attr(new_x, "GridPoints_u") <- attr(x, "GridPoints_u")
   attr(new_x, "Smoothing_parameter") <- attr(x, "Smoothing_parameter")
   attr(new_x, "Sparsity_parameter") <- attr(x, "Sparsity_parameter")
   attr(new_x, "n_var") <- length(k)
-  attr(new_x, "ncol") <- ncol_all[k]
+  attr(new_x, "ncol") <- as.data.frame(t(ncol_all[k]))
   attr(new_x, "variable_types") <- var_types[k]
   attr(new_x, "Smoothing_parameter_col") <- attr(x, "Smoothing_parameter_col")[k]
   attr(new_x, "GridPoints_v") <- attr(x, "GridPoints_v")[k]

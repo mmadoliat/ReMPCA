@@ -5,10 +5,23 @@
 #'
 #' @param ReMPCA_obj Output list from ReMPCA.
 #' @param ... Additional plotting parameters.
-#' @return A base R plot.
+#' @return No return value, called for its side effect (plotting).
+#' @examples
+#' set.seed(1)
+#' u <- sin(seq(0, pi, length.out = 30))
+#' X1 <- outer(u, cos(seq(0, pi, length.out = 12))) + matrix(rnorm(360, sd = 0.2), 30)
+#' X2 <- outer(u, c(1, -1, 0, 0.5)) + matrix(rnorm(120, sd = 0.2), 30)
+#' hd <- hdClass(list(fdClass(X1, Smoothing_parameter = c(0.01, 0.1, 1)),
+#'                    rdClass(X2, Sparsity_parameter = 0:2)),
+#'               Smoothing_parameter = c(0.001, 0.01), Sparsity_parameter = 0:2)
+#' fit <- ReMPCA(hd, num_pcs = 1, nfolds_u = 2, nfolds_v = c(2, 2),
+#'               cv.pick = "min", verbose = FALSE)
+#' plot_gcv_u(fit)
 #' @export
 #' @importFrom graphics text arrows
 plot_gcv_u <- function(ReMPCA_obj,...) {
+  oldpar <- par(no.readonly = TRUE)
+  on.exit(par(oldpar))
   GCVlist <- ReMPCA_obj$GCVResultsU
   smooth_result_u <- ReMPCA_obj$OptimalAlphaU
   n_pc <- length(GCVlist)
@@ -52,8 +65,22 @@ plot_gcv_u <- function(ReMPCA_obj,...) {
 #'
 #' @param ReMPCA_obj A list-like ReMPCA object with GCVResultsV and OptimalAlphaV.
 #' @param ... Additional plotting options.
+#' @return No return value, called for its side effect (plotting).
+#' @examples
+#' set.seed(1)
+#' u <- sin(seq(0, pi, length.out = 30))
+#' X1 <- outer(u, cos(seq(0, pi, length.out = 12))) + matrix(rnorm(360, sd = 0.2), 30)
+#' X2 <- outer(u, c(1, -1, 0, 0.5)) + matrix(rnorm(120, sd = 0.2), 30)
+#' hd <- hdClass(list(fdClass(X1, Smoothing_parameter = c(0.01, 0.1, 1)),
+#'                    rdClass(X2, Sparsity_parameter = 0:2)),
+#'               Smoothing_parameter = c(0.001, 0.01), Sparsity_parameter = 0:2)
+#' fit <- ReMPCA(hd, num_pcs = 1, nfolds_u = 2, nfolds_v = c(2, 2),
+#'               cv.pick = "min", verbose = FALSE)
+#' plot_gcv_v(fit)
 #' @export
 plot_gcv_v <- function(ReMPCA_obj, ...) {
+  oldpar <- par(no.readonly = TRUE)
+  on.exit(par(oldpar))
   GCVlist <- ReMPCA_obj$GCVResultsV
   smooth_result_v <- ReMPCA_obj$OptimalAlphaV
   n_pc <- length(GCVlist)
@@ -146,14 +173,27 @@ plot_gcv_v <- function(ReMPCA_obj, ...) {
 #' For each principal component (PC), plots cross-validation (CV) error versus the
 #' sparsity tuning parameter (`gamma`) for the u-direction. The red dashed line
 #' indicates the 1-SE rule threshold, and the selected optimal gamma is highlighted.
-#' Optionally, standard error bars (±1 SE) can be displayed.
+#' Optionally, standard error bars (+/- 1 SE) can be displayed.
 #'
 #' @param ReMPCA_obj Output list from the ReMPCA routine.
 #' @param show_se Logical. If TRUE, adds standard error bars to each point. Default is TRUE.
 #' @param ... Additional plotting options passed to `plot()`.
-#' @return Generates base R plots side-by-side for each PC.
+#' @return No return value, called for its side effect (plotting base R plots side-by-side for each PC).
+#' @examples
+#' set.seed(1)
+#' u <- sin(seq(0, pi, length.out = 30))
+#' X1 <- outer(u, cos(seq(0, pi, length.out = 12))) + matrix(rnorm(360, sd = 0.2), 30)
+#' X2 <- outer(u, c(1, -1, 0, 0.5)) + matrix(rnorm(120, sd = 0.2), 30)
+#' hd <- hdClass(list(fdClass(X1, Smoothing_parameter = c(0.01, 0.1, 1)),
+#'                    rdClass(X2, Sparsity_parameter = 0:2)),
+#'               Smoothing_parameter = c(0.001, 0.01), Sparsity_parameter = 0:2)
+#' fit <- ReMPCA(hd, num_pcs = 1, nfolds_u = 2, nfolds_v = c(2, 2),
+#'               cv.pick = "min", verbose = FALSE)
+#' plot_cv_u(fit)
 #' @export
 plot_cv_u <- function(ReMPCA_obj, show_se = TRUE, ...) {
+  oldpar <- par(no.readonly = TRUE)
+  on.exit(par(oldpar))
   CVlist <- ReMPCA_obj$CVResultsU
   opt_gamma <- ReMPCA_obj$OptimalGammaU
   n_pc <- length(CVlist)
@@ -208,10 +248,24 @@ plot_cv_u <- function(ReMPCA_obj, show_se = TRUE, ...) {
 #' indicates the 1-SE rule threshold, and the selected optimal gamma is highlighted.
 #'
 #' @param ReMPCA_obj A list object returned by ReMPCA containing `CVResultsV` and `OptimalGammaV`.
-#' @param show_se Logical. If TRUE, adds standard error bars (±1 SE) to each point. Default is TRUE.
+#' @param show_se Logical. If TRUE, adds standard error bars (+/- 1 SE) to each point. Default is TRUE.
 #' @param ... Additional arguments passed to the `plot()` function.
+#' @return No return value, called for its side effect (plotting).
+#' @examples
+#' set.seed(1)
+#' u <- sin(seq(0, pi, length.out = 30))
+#' X1 <- outer(u, cos(seq(0, pi, length.out = 12))) + matrix(rnorm(360, sd = 0.2), 30)
+#' X2 <- outer(u, c(1, -1, 0, 0.5)) + matrix(rnorm(120, sd = 0.2), 30)
+#' hd <- hdClass(list(fdClass(X1, Smoothing_parameter = c(0.01, 0.1, 1)),
+#'                    rdClass(X2, Sparsity_parameter = 0:2)),
+#'               Smoothing_parameter = c(0.001, 0.01), Sparsity_parameter = 0:2)
+#' fit <- ReMPCA(hd, num_pcs = 1, nfolds_u = 2, nfolds_v = c(2, 2),
+#'               cv.pick = "min", verbose = FALSE)
+#' plot_cv_v(fit)
 #' @export
 plot_cv_v <- function(ReMPCA_obj, show_se = TRUE, ...) {
+  oldpar <- par(no.readonly = TRUE)
+  on.exit(par(oldpar))
   CV_v <- ReMPCA_obj$CVResultsV
   OptimalGammaV <- ReMPCA_obj$OptimalGammaV
   n_pc <- length(CV_v)
@@ -304,9 +358,22 @@ plot_cv_v <- function(ReMPCA_obj, show_se = TRUE, ...) {
 #' @param ... Additional plotting options.
 #' @return No return value. The function produces a series of dot plots, one for
 #'         each principal component.
+#' @examples
+#' set.seed(1)
+#' u <- sin(seq(0, pi, length.out = 30))
+#' X1 <- outer(u, cos(seq(0, pi, length.out = 12))) + matrix(rnorm(360, sd = 0.2), 30)
+#' X2 <- outer(u, c(1, -1, 0, 0.5)) + matrix(rnorm(120, sd = 0.2), 30)
+#' hd <- hdClass(list(fdClass(X1, Smoothing_parameter = c(0.01, 0.1, 1)),
+#'                    rdClass(X2, Sparsity_parameter = 0:2)),
+#'               Smoothing_parameter = c(0.001, 0.01), Sparsity_parameter = 0:2)
+#' fit <- ReMPCA(hd, num_pcs = 1, nfolds_u = 2, nfolds_v = c(2, 2),
+#'               cv.pick = "min", verbose = FALSE)
+#' plot_pc_scores(fit)
 #' @export
 
 plot_pc_scores <- function(ReMPCA_obj, ...) {
+  oldpar <- par(no.readonly = TRUE)
+  on.exit(par(oldpar))
   scores <- ReMPCA_obj$PCScores
 
   if (!is.data.frame(scores) && !is.matrix(scores)) {
@@ -338,12 +405,25 @@ plot_pc_scores <- function(ReMPCA_obj, ...) {
 #' @param ... Additional plotting options.
 #' @details The function arranges plots in a matrix layout with rows corresponding
 #' to variables and columns to principal components. A light gray horizontal line
-#' at 0 is added for reference unless the minimum value in the plot is ≥ 5.
+#' at 0 is added for reference unless the minimum value in the plot is at least 5.
 #'
 #' @return No return value. This function is called for its side effect of plotting.
 #'
+#' @examples
+#' set.seed(1)
+#' u <- sin(seq(0, pi, length.out = 30))
+#' X1 <- outer(u, cos(seq(0, pi, length.out = 12))) + matrix(rnorm(360, sd = 0.2), 30)
+#' X2 <- outer(u, c(1, -1, 0, 0.5)) + matrix(rnorm(120, sd = 0.2), 30)
+#' hd <- hdClass(list(fdClass(X1, Smoothing_parameter = c(0.01, 0.1, 1)),
+#'                    rdClass(X2, Sparsity_parameter = 0:2)),
+#'               Smoothing_parameter = c(0.001, 0.01), Sparsity_parameter = 0:2)
+#' fit <- ReMPCA(hd, num_pcs = 1, nfolds_u = 2, nfolds_v = c(2, 2),
+#'               cv.pick = "min", verbose = FALSE)
+#' plot_pc_functions(fit)
 #' @export
 plot_pc_functions <- function(ReMPCA_obj, ...) {
+  oldpar <- par(no.readonly = TRUE)
+  on.exit(par(oldpar))
   PCFunctions <- ReMPCA_obj$PCFunctions
   variable_types <- ReMPCA_obj$variable_types
 

@@ -2,7 +2,7 @@
 % Please edit documentation in R/ReMPCA.R
 \name{ReMPCA}
 \alias{ReMPCA}
-\title{ReMPCA Smooth and Sparse Multivariate Functional Principal Component Analysis}
+\title{Regularized (Smooth and Sparse) Principal Component Analysis for Hybrid Data}
 \usage{
 ReMPCA(
   hd,
@@ -22,7 +22,8 @@ ReMPCA(
   sparse_tuning_u = NULL,
   sparse_tuning_v = NULL,
   smooth_tuning_u = NULL,
-  smooth_tuning_v = NULL
+  smooth_tuning_v = NULL,
+  verbose = TRUE
 )
 }
 \arguments{
@@ -45,9 +46,10 @@ all variables by default.}
 
 \item{tuning_iter}{Integer specifying the number of iterations to perform during the tuning process for conditional smoothing and sparsity parameters.}
 
-\item{parallel}{Logical; if \code{TRUE}, parallel computation is used to fit models
-across different sparsity parameter values. Users must register a parallel backend
-beforehand using packages such as \pkg{doParallel}, \pkg{doMC}, or similar.}
+\item{parallel}{Logical; if \code{TRUE}, the cross-validation fits used to tune the
+sparsity parameters are distributed over a local PSOCK cluster created internally
+(at most 6 workers, and never more than \code{parallel::detectCores()}). The cluster
+is stopped before the function returns. Default is \code{FALSE}.}
 
 \item{weights}{Optional numeric vector of scaling weights.
 If \code{NULL}, the function automatically computes weights based on the inverse square root
@@ -92,10 +94,77 @@ If set to \code{NULL}, the function will default to using the \code{Sparsity_par
 
 \item{smooth_tuning_v}{Optional. A list of length \code{p} (number of variables), where the \code{i}-th element is either a numeric value or a vector specifying candidate smoothing parameters for the \code{i}-th variable.
 If set to \code{NULL}, the function will default to using the \code{Smoothing_parameter_col} attribute from the input object of class \code{hdClass}.}
+
+\item{verbose}{Logical; if \code{TRUE} (default), progress bars and progress
+messages are printed. Set to \code{FALSE} for silent fitting.}
 }
 \value{
-ReconstructedData, PCFunctions, PCScores, OptimalAlphaV, OptimalAlphaU, OptimalGammaV, OptimalGammaU, GCVResultsV, GCVResultsU, CVResultsV, CVResultsU, VarianceExplained, variable_types
+A list with components
+\describe{
+\item{ReconstructedData}{List (one element per component) of the fitted
+rank-one matrices \eqn{\hat u_j \hat v_j^\top}, on the centered and weighted scale.}
+\item{PCFunctions}{List (one element per component) of lists (one element per
+variable) holding the estimated loadings \eqn{\hat v_j}.}
+\item{PCScores}{Matrix of scores \eqn{\hat u_j}, one column per component.}
+\item{OptimalAlphaV, OptimalAlphaU}{Selected smoothing parameters, per component.}
+\item{OptimalGammaV, OptimalGammaU}{Selected sparsity parameters, per component.}
+\item{GCVResultsV, GCVResultsU}{GCV scores over the candidate smoothing parameters.}
+\item{CVResultsV, CVResultsU}{CV errors and standard errors over the candidate
+sparsity parameters.}
+\item{variable_types}{Type of each variable: \code{"hd"} (functional) or \code{"rd"} (regular).}
+\item{VarianceExplained}{Proportion of the total variation of the (centered and
+weighted) data explained by each estimated component, computed by projecting
+the data onto the span of the estimated loadings.}
+}
 }
 \description{
-ReMPCA Smooth and Sparse Multivariate Functional Principal Component Analysis
+Fits regularized principal components to a hybrid data object (functional,
+image, and non-functional blocks observed on a common set of rows) by a
+regularized power algorithm. Smoothness and sparsity can be imposed on the
+row direction (scores, \eqn{u}) and, block by block, on the column
+direction (loadings, \eqn{v}). Smoothing parameters are selected by
+(conditional) generalized cross-validation and sparsity parameters by
+\eqn{K}-fold cross-validation whenever more than one candidate value is
+supplied.
+}
+\details{
+Components are extracted sequentially. After the \eqn{j}-th regularized
+component \eqn{\hat u_j \hat v_j^\top} is estimated (with \eqn{\|\hat v_j\| = 1}),
+it is subtracted from the (centered and weighted) data matrix and the next
+component is estimated from the residual matrix.
+
+Candidate sparsity levels are interpreted as the number of entries set to zero
+and should be supplied in increasing order (least sparse first), because the
+one-standard-error rule (\code{cv.pick = "1se"}) selects the largest candidate
+whose CV error is within one standard error of the minimum. The cross-validation
+folds are formed with a fixed internal seed so that results are reproducible;
+the global random number generator state of the user is not modified.
+}
+\examples{
+set.seed(1)
+n <- 40
+u <- sin(seq(0, pi, length.out = n))
+X1 <- outer(u, cos(seq(0, pi, length.out = 15))) + matrix(rnorm(n * 15, sd = 0.2), n)
+X2 <- outer(u, c(1, -1, 0, 0, 0.5)) + matrix(rnorm(n * 5, sd = 0.2), n)
+hd <- hdClass(list(fdClass(X1, Smoothing_parameter = c(0.01, 0.1, 1)),
+                   rdClass(X2, Sparsity_parameter = 0:2)))
+fit <- ReMPCA(hd, num_pcs = 1, nfolds_u = 2, nfolds_v = c(2, 2),
+              cv.pick = "min", verbose = FALSE)
+fit$OptimalAlphaV
+fit$OptimalGammaV
+plot_pc_functions(fit)
+}
+\references{
+Huang, J. Z., Shen, H. and Buja, A. (2008). Functional principal components
+analysis via penalized rank one approximation. \emph{Electronic Journal of
+Statistics}, 2, 678--695. \doi{10.1214/08-EJS218}
+
+Shen, H. and Huang, J. Z. (2008). Sparse principal component analysis via
+regularized low rank matrix approximation. \emph{Journal of Multivariate
+Analysis}, 99(6), 1015--1034. \doi{10.1016/j.jmva.2007.06.007}
+
+Huang, J. Z., Shen, H. and Buja, A. (2009). The analysis of two-way functional
+data using two-way regularized singular value decompositions. \emph{Journal of
+the American Statistical Association}, 104(488), 1609--1620.
+\doi{10.1198/jasa.2009.tm08024}
 }

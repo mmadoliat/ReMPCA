@@ -1,6 +1,12 @@
 ########################### get.pen function ###########################
 get.pen <- function(td, alpha, type, thrs = 1e-4) {
   # thrs <- 1e-6
+  if (alpha != 0 && type == "Second_order" && length(td) < 4) {
+    stop("Second-order smoothing requires at least 4 grid points.")
+  }
+  if (alpha != 0 && length(td) < 2) {
+    stop("Smoothing requires at least 2 grid points.")
+  }
 
   if(type == "Second_order"){
     if(alpha == 0){
@@ -121,4 +127,5 @@ get.pen <- function(td, alpha, type, thrs = 1e-4) {
     }
     return(list(S.alpha=S.alpha, Omega = OMEGA))
   }
+  stop("Unknown smoothness_type '", type, "'; use 'Second_order', 'First_order', or 'Indicator'.")
 }

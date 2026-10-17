@@ -18,7 +18,7 @@ energydata
 \format{
 A data frame with 19,735 observations and 29 variables:
 \describe{
-  \item{date}{Date and time of the observation.}
+  \item{date}{Date and time of the observation, as a character string (\code{"YYYY-mm-dd HH:MM:SS"}).}
   \item{Appliances}{Appliance energy use, in Wh.}
   \item{lights}{Energy use of light fixtures, in Wh.}
   \item{T1}{Temperature in the kitchen area.}

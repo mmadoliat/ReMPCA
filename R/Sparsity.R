@@ -15,9 +15,10 @@ cv_sparse_row <- function(data,
                           sparse_tuning_result_v,
                           sparse_tuning_type) {
 
-  # 1) pre‐compute things that don't depend on j:
-  set.seed(123)
-  shuffled_cols <- sample(ncol(data))
+  # 1) pre-compute things that don't depend on j.
+  # The fold assignment uses a fixed seed (123) for reproducibility; the
+  # user's global random number generator state is restored afterwards.
+  shuffled_cols <- withr::with_seed(123, sample(ncol(data)))
   group_size    <- ceiling(length(shuffled_cols) / K_fold)
 
   # 2) helper that does the exact same inner logic for a single j:
@@ -26,7 +27,12 @@ cv_sparse_row <- function(data,
     fold_errs  <- numeric(K_fold)
 
     for (k in seq_len(K_fold)) {
-      cols_out   <- shuffled_cols[((k-1)*group_size + 1):
+      start_k <- (k - 1) * group_size + 1
+      if (start_k > length(shuffled_cols)) {
+        fold_errs[k] <- NA_real_   # empty fold (K_fold too large)
+        next
+      }
+      cols_out   <- shuffled_cols[start_k:
                                     min(k*group_size, length(shuffled_cols))]
       data_train <- data[, -cols_out, drop=FALSE]
       data_test  <- data[,  cols_out, drop=FALSE]
@@ -57,17 +63,19 @@ cv_sparse_row <- function(data,
       )
 
       u_hat      <- pr[[2]]
-      v_pred     <- t(as.matrix(data_test)) %*% u_hat
+      # Least-squares loadings of the held-out columns given u_hat
+      # (v = X' u / ||u||^2); u_hat is not normalized to unit length.
+      v_pred     <- t(as.matrix(data_test)) %*% u_hat / sum(u_hat^2)
       fold_errs[k] <- sum((data_test - u_hat %*% t(v_pred))^2) / ncol(data_test)
     }
 
     # return named vector with error & se
-    err <- mean(fold_errs)
-    se  <- sd(fold_errs) / sqrt(K_fold)
+    err <- mean(fold_errs, na.rm = TRUE)
+    se  <- stats::sd(fold_errs, na.rm = TRUE) / sqrt(sum(!is.na(fold_errs)))
     list(err = err, se = se, folds = fold_errs)
   }
 
-  # 3) pick the right apply‐fun
+  # 3) pick the right apply-fun
   if (parallel) {
     if (is.null(cl))
       stop("When parallel=TRUE you must pass a cluster 'cl'")
@@ -134,9 +142,9 @@ cv_sparse_col <- function(data,
                           sparse_tuning_result_v,
                           sparse_tuning_type) {
 
-  # 1) prepare fold assignments
-  set.seed(123)
-  shuffled_rows <- sample(nrow(data))
+  # 1) prepare fold assignments (fixed seed 123; the user's global RNG state
+  #    is restored afterwards)
+  shuffled_rows <- withr::with_seed(123, sample(nrow(data)))
   group_size    <- ifelse(
     round(length(shuffled_rows) / K_fold, 0) == 0,
     1,
@@ -146,13 +154,15 @@ cv_sparse_col <- function(data,
   # 2) helper: compute the error for a single fold k
   compute_fold <- function(k) {
     # which rows go to test
-    rows_out   <- shuffled_rows[((k - 1) * group_size + 1):
+    start_k <- (k - 1) * group_size + 1
+    if (start_k > length(shuffled_rows)) return(NA_real_)  # empty fold
+    rows_out   <- shuffled_rows[start_k:
                                   min(k * group_size, length(shuffled_rows))]
     # train / test split
     train_df   <- data.frame(data[-rows_out, , drop = FALSE])
     test_df    <- data.frame(data[ rows_out, , drop = FALSE])
 
-    # run your exact same power‐algorithm call
+    # run your exact same power-algorithm call
     pr <- power_algo(
       data                    = train_df,
       n_var                   = n_var,
@@ -170,11 +180,11 @@ cv_sparse_col <- function(data,
     v_train <- pr[[1]]
     u_test  <- as.matrix(test_df) %*% as.matrix(v_train)
 
-    # exactly the same fold‐error
+    # exactly the same fold-error
     sum((test_df - u_test %*% t(v_train))^2) / nrow(test_df)
   }
 
-  # 3) pick apply‐function
+  # 3) pick apply-function
   if (parallel) {
     if (is.null(cl)) stop("Must supply a cluster 'cl' when parallel=TRUE")
     # export needed objects
@@ -196,8 +206,8 @@ cv_sparse_col <- function(data,
   fold_errors      <- unlist(fold_errors_list)
 
   # 5) compute CV summary
-  CV_mean <- mean(fold_errors)
-  CV_se   <- sd(fold_errors) / sqrt(K_fold)
+  CV_mean <- mean(fold_errors, na.rm = TRUE)
+  CV_se   <- stats::sd(fold_errors, na.rm = TRUE) / sqrt(sum(!is.na(fold_errors)))
 
   # 6) return exactly as before
   list(

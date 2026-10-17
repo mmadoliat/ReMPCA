@@ -91,8 +91,8 @@ opt_alpha_v <- function(X,
                         conditional,
                         GridPoints_v,
                         S_alphas_v,   # List of length = n_iter, each element is list of length = n_var
-                        S_alphas_u,   # Matrix (n × n)
-                        alphas_v,     # Matrix of alpha_v values (n_iter × n_var)
+                        S_alphas_u,   # Matrix (n x n)
+                        alphas_v,     # Matrix of alpha_v values (n_iter x n_var)
                         alpha_u,      # scalar
                         Omega_u,      # A matrix associated with alpha_u
                         Omegas_v,     # List of length = n_iter, each element is list of length = n_var
@@ -190,7 +190,7 @@ opt_alpha_v <- function(X,
       bdiag(
         lapply(seq_len(n_var), function(j) {
           alpha_j <- as.numeric(opt.alpha[j])
-          Mj      <- Omega_v[[j]][[1]]   # or $Omega, whichever holds your 101×101
+          Mj      <- Omega_v[[j]]   # roughness matrix of the j-th variable
           alpha_j * Mj
         })
       )

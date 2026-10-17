@@ -7,18 +7,22 @@
 imgClass(image, Smoothing_parameter = 0, Sparsity_parameter = 0, argval = NULL)
 }
 \arguments{
-\item{image}{A matrix representing a single image or a list of matrices representing multiple images.
-Each image must be a matrix of the same dimension.}
+\item{image}{A list of matrices, one per image (observation). All images must have
+the same dimension. Wrap a single image as \code{list(img)}.}
 
 \item{Smoothing_parameter}{\itemize{
 \item A numeric scalar or vector controlling the level of smoothing (as in \code{fdClass}).
+\itemize{
 \item Set to 0 for no smoothing (produces an \code{rdClass} object).
 \item If NULL, smoothing is tuned from a default sequence.
+}
 }}
 
 \item{Sparsity_parameter}{\itemize{
 \item A fixed number or vector controlling the level of sparsity on pixel columns.
+\itemize{
 \item If NULL, it is tuned automatically based on image size.
+}
 }}
 
 \item{argval}{Optional numeric vector for grid points over the pixels (columns).}
@@ -29,8 +33,8 @@ An object of class \code{fdClass} or \code{rdClass}, depending on the \code{Smoo
 \description{
 The \code{imgClass} class is designed to handle images:
 \itemize{
-\item Supports either a single image (a matrix) or a list of multiple images (matrices).
-\item When a list is provided, all images are vectorized (row-wise) and combined into one matrix.
+\item Takes a list of images (matrices of equal dimension); a single image must be wrapped in \code{list()}.
+\item All images are vectorized (row-wise) and combined into one matrix, with one row per image.
 \item The resulting object behaves like a \code{fdClass} if \code{Smoothing_parameter} is not zero, otherwise as a \code{rdClass}.
 \item Grid points (optional) are assigned to the columns (i.e., pixel locations).
 }

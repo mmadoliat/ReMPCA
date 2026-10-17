@@ -1,4 +1,13 @@
-#' ReMPCA Smooth and Sparse Multivariate Functional Principal Component Analysis
+#' Regularized (Smooth and Sparse) Principal Component Analysis for Hybrid Data
+#'
+#' Fits regularized principal components to a hybrid data object (functional,
+#' image, and non-functional blocks observed on a common set of rows) by a
+#' regularized power algorithm. Smoothness and sparsity can be imposed on the
+#' row direction (scores, \eqn{u}) and, block by block, on the column
+#' direction (loadings, \eqn{v}). Smoothing parameters are selected by
+#' (conditional) generalized cross-validation and sparsity parameters by
+#' \eqn{K}-fold cross-validation whenever more than one candidate value is
+#' supplied.
 #'
 #' @param hd An hdClass object.
 #' @param centerhds A logical; if True, it demeans the data before calculating the principal components.
@@ -19,9 +28,10 @@
 #' parameter corresponding to the minimum cross-validation error is chosen. If set to `'1se'`
 #' (the default), the 1-standard-error rule is applied, selecting the most regularized
 #' model whose error is within one standard error of the minimum.
-#' @param parallel Logical; if \code{TRUE}, parallel computation is used to fit models
-#' across different sparsity parameter values. Users must register a parallel backend
-#' beforehand using packages such as \pkg{doParallel}, \pkg{doMC}, or similar.
+#' @param parallel Logical; if \code{TRUE}, the cross-validation fits used to tune the
+#' sparsity parameters are distributed over a local PSOCK cluster created internally
+#' (at most 6 workers, and never more than \code{parallel::detectCores()}). The cluster
+#' is stopped before the function returns. Default is \code{FALSE}.
 #' @param tuning_iter Integer specifying the number of iterations to perform during the tuning process for conditional smoothing and sparsity parameters.
 #' @param sparse_tuning_u Optional. Specifies the sparsity level(s) for rows:
 #' \itemize{
@@ -49,12 +59,71 @@
 #' This is used to adjust for scale differences across variables in the hybrid data object.
 #' @param thresh The convergence threshold in power algorithm.
 #' @param maxit Maximum number of iterations in power algorithm.
+#' @param verbose Logical; if \code{TRUE} (default), progress bars and progress
+#' messages are printed. Set to \code{FALSE} for silent fitting.
+#'
+#' @details
+#' Components are extracted sequentially. After the \eqn{j}-th regularized
+#' component \eqn{\hat u_j \hat v_j^\top} is estimated (with \eqn{\|\hat v_j\| = 1}),
+#' it is subtracted from the (centered and weighted) data matrix and the next
+#' component is estimated from the residual matrix.
+#'
+#' Candidate sparsity levels are interpreted as the number of entries set to zero
+#' and should be supplied in increasing order (least sparse first), because the
+#' one-standard-error rule (\code{cv.pick = "1se"}) selects the largest candidate
+#' whose CV error is within one standard error of the minimum. The cross-validation
+#' folds are formed with a fixed internal seed so that results are reproducible;
+#' the global random number generator state of the user is not modified.
+#'
+#' @references
+#' Huang, J. Z., Shen, H. and Buja, A. (2008). Functional principal components
+#' analysis via penalized rank one approximation. \emph{Electronic Journal of
+#' Statistics}, 2, 678--695. \doi{10.1214/08-EJS218}
+#'
+#' Shen, H. and Huang, J. Z. (2008). Sparse principal component analysis via
+#' regularized low rank matrix approximation. \emph{Journal of Multivariate
+#' Analysis}, 99(6), 1015--1034. \doi{10.1016/j.jmva.2007.06.007}
+#'
+#' Huang, J. Z., Shen, H. and Buja, A. (2009). The analysis of two-way functional
+#' data using two-way regularized singular value decompositions. \emph{Journal of
+#' the American Statistical Association}, 104(488), 1609--1620.
+#' \doi{10.1198/jasa.2009.tm08024}
 #'
 #' @importFrom utils  txtProgressBar setTxtProgressBar
 #' @importFrom Matrix bdiag
 #' @importFrom stats var
 #'
-#' @return ReconstructedData, PCFunctions, PCScores, OptimalAlphaV, OptimalAlphaU, OptimalGammaV, OptimalGammaU, GCVResultsV, GCVResultsU, CVResultsV, CVResultsU, VarianceExplained, variable_types
+#' @return A list with components
+#' \describe{
+#'   \item{ReconstructedData}{List (one element per component) of the fitted
+#'     rank-one matrices \eqn{\hat u_j \hat v_j^\top}, on the centered and weighted scale.}
+#'   \item{PCFunctions}{List (one element per component) of lists (one element per
+#'     variable) holding the estimated loadings \eqn{\hat v_j}.}
+#'   \item{PCScores}{Matrix of scores \eqn{\hat u_j}, one column per component.}
+#'   \item{OptimalAlphaV, OptimalAlphaU}{Selected smoothing parameters, per component.}
+#'   \item{OptimalGammaV, OptimalGammaU}{Selected sparsity parameters, per component.}
+#'   \item{GCVResultsV, GCVResultsU}{GCV scores over the candidate smoothing parameters.}
+#'   \item{CVResultsV, CVResultsU}{CV errors and standard errors over the candidate
+#'     sparsity parameters.}
+#'   \item{variable_types}{Type of each variable: \code{"hd"} (functional) or \code{"rd"} (regular).}
+#'   \item{VarianceExplained}{Proportion of the total variation of the (centered and
+#'     weighted) data explained by each estimated component, computed by projecting
+#'     the data onto the span of the estimated loadings.}
+#' }
+#'
+#' @examples
+#' set.seed(1)
+#' n <- 40
+#' u <- sin(seq(0, pi, length.out = n))
+#' X1 <- outer(u, cos(seq(0, pi, length.out = 15))) + matrix(rnorm(n * 15, sd = 0.2), n)
+#' X2 <- outer(u, c(1, -1, 0, 0, 0.5)) + matrix(rnorm(n * 5, sd = 0.2), n)
+#' hd <- hdClass(list(fdClass(X1, Smoothing_parameter = c(0.01, 0.1, 1)),
+#'                    rdClass(X2, Sparsity_parameter = 0:2)))
+#' fit <- ReMPCA(hd, num_pcs = 1, nfolds_u = 2, nfolds_v = c(2, 2),
+#'               cv.pick = "min", verbose = FALSE)
+#' fit$OptimalAlphaV
+#' fit$OptimalGammaV
+#' plot_pc_functions(fit)
 #' @export
 ################### Smooth and Sparse Multivariate PCA ###################
 ReMPCA <- function(hd,
@@ -74,11 +143,21 @@ ReMPCA <- function(hd,
                    sparse_tuning_u = NULL,
                    sparse_tuning_v = NULL,
                    smooth_tuning_u = NULL,
-                   smooth_tuning_v = NULL) {
+                   smooth_tuning_v = NULL,
+                   verbose = TRUE) {
 
   # Check if hd is a hd object
   if (!inherits(hd, "hdClass")) {
     stop("hd must be of class 'hdClass'!")
+  }
+  # Validate character options
+  smoothness_type <- match.arg(smoothness_type,
+                               c("Second_order", "First_order", "Indicator"))
+  sparse_tuning_type <- match.arg(sparse_tuning_type, c("soft", "hard", "SCAD"))
+  tuning_order <- match.arg(tuning_order, c("Sparsity", "Smoothness"))
+  cv.pick <- match.arg(cv.pick, c("1se", "min"))
+  if (!is.numeric(num_pcs) || length(num_pcs) != 1 || num_pcs < 1) {
+    stop("'num_pcs' must be a positive integer.")
   }
   n_var <- attr(hd, "n_var")
 
@@ -163,9 +242,9 @@ ReMPCA <- function(hd,
   ####### S_alpha for all alphas #######
   S_alpha_list_u <- S_alpha_list_v <- Omegas_v <- list()
   index <- 0
-  cat("Preprocessing ...\n")
+  if (verbose) message("Preprocessing ...")
   n_iter1 <- nrow(smooth_tuning_col)     # The number of alphas
-  pb <- txtProgressBar(min = 0,      # Minimum value of the progress bar
+  if (verbose) pb <- txtProgressBar(min = 0,      # Minimum value of the progress bar
                        max = n_iter1,# Maximum value of the progress bar
                        style = 3,    # Progress bar style
                        width = 50,   # Progress bar width.
@@ -190,7 +269,7 @@ ReMPCA <- function(hd,
     }
     S_alpha_list_v[[index]] <- S_v #as.matrix(bdiag(S_v))
     Omegas_v[[index]] <- Omega_v
-    setTxtProgressBar(pb, index)
+    if (verbose) setTxtProgressBar(pb, index)
   }
 
   # S_alpha for u
@@ -205,7 +284,7 @@ ReMPCA <- function(hd,
       Omegas_u[[alpha_index]] <- get.pen.result$Omega
     }
   }
-  close(pb)
+  if (verbose) close(pb)
 
   # Initializing the lists
   opt_S_v <- opt_S_u <- list()
@@ -214,22 +293,16 @@ ReMPCA <- function(hd,
   GCV_v <- GCV_u <- CV_v <- CV_u <- list()
   lsv <- lsu <- c()
   funcs <- PCs <- list()
+  V_hat <- matrix(0, nrow = ncol(X), ncol = num_pcs)  # estimated loadings
   X_orig <- X; X_temp <- X
   pve <- numeric(num_pcs)
 
   ####### ReMPCA Implementation #######
   for (j in 1:num_pcs) {
 
-    cat(sprintf("Computing the %s PC ...\n", ordinal(j)))
-    if (j == 1) {
-      X_temp = X
-    } else{
-      SVD_result = svd(X_temp)
-      v_original = SVD_result$v[,1]
-      u_original = SVD_result$u[,1]
-      sigma = SVD_result$d[1]
-      X_temp = X_temp - sigma * u_original%*%t(v_original)
-    }
+    if (verbose) message(sprintf("Computing the %s PC ...", ordinal(j)))
+    # For j > 1, X_temp is the residual after removing the previously
+    # estimated regularized components (deflation step of the algorithm).
 
     # Tuning Parameters
     param_result <- list()
@@ -256,7 +329,8 @@ ReMPCA <- function(hd,
                                         thresh = thresh,
                                         maxit = maxit,
                                         cv.pick = cv.pick,
-                                        smoothness_type = smoothness_type)
+                                        smoothness_type = smoothness_type,
+                                        verbose = verbose)
 
     # Optimal parameters
     sparse_result_u[[j]] <- param_result$sparse_tuning_selection_u
@@ -288,7 +362,7 @@ ReMPCA <- function(hd,
                               S_alpha_v = opt_S_v[[j]],
                               S_alpha_u = opt_S_u[[j]],
                               alpha_Omega_v=param_result$last_opt_alpha_omega_v,
-                              alpha_Omega_u=param_result$last_opt_alpha_omega_v,
+                              alpha_Omega_u=param_result$last_opt_alpha_omega_u,
                               sparse_tuning_type = sparse_tuning_type)
 
 
@@ -297,6 +371,10 @@ ReMPCA <- function(hd,
     lsv <- cbind(lsv, v)
     lsu <- cbind(lsu, u)
     funcs[[j]] <- u%*%t(v)
+    V_hat[, j] <- v
+
+    # Deflation: remove the estimated regularized component
+    X_temp <- X_temp - funcs[[j]]
 
     # Splitting v for variables
     new_PC <- list()
@@ -310,8 +388,7 @@ ReMPCA <- function(hd,
   }
 
   # Variance explained by each PC
-  V_list <-  apply(data.frame(svd(X_orig)$v[,1:num_pcs]), 2, function(x) x)
-  V_list <- as.list(data.frame(V_list))
+  V_list <- lapply(seq_len(num_pcs), function(k) V_hat[, k])
   Variance <- compute_variance_explained(X_orig, V_list = V_list)
 
   return(list(

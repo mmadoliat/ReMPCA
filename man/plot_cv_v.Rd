@@ -9,13 +9,28 @@ plot_cv_v(ReMPCA_obj, show_se = TRUE, ...)
 \arguments{
 \item{ReMPCA_obj}{A list object returned by ReMPCA containing \code{CVResultsV} and \code{OptimalGammaV}.}
 
-\item{show_se}{Logical. If TRUE, adds standard error bars (±1 SE) to each point. Default is TRUE.}
+\item{show_se}{Logical. If TRUE, adds standard error bars (+/- 1 SE) to each point. Default is TRUE.}
 
 \item{...}{Additional arguments passed to the \code{plot()} function.}
+}
+\value{
+No return value, called for its side effect (plotting).
 }
 \description{
 This function creates a grid of plots showing cross-validation (CV) scores
 for each principal component (PC) and functional variable based on different
 values of the gamma penalty parameter in the v-direction. The red dashed line
 indicates the 1-SE rule threshold, and the selected optimal gamma is highlighted.
+}
+\examples{
+set.seed(1)
+u <- sin(seq(0, pi, length.out = 30))
+X1 <- outer(u, cos(seq(0, pi, length.out = 12))) + matrix(rnorm(360, sd = 0.2), 30)
+X2 <- outer(u, c(1, -1, 0, 0.5)) + matrix(rnorm(120, sd = 0.2), 30)
+hd <- hdClass(list(fdClass(X1, Smoothing_parameter = c(0.01, 0.1, 1)),
+                   rdClass(X2, Sparsity_parameter = 0:2)),
+              Smoothing_parameter = c(0.001, 0.01), Sparsity_parameter = 0:2)
+fit <- ReMPCA(hd, num_pcs = 1, nfolds_u = 2, nfolds_v = c(2, 2),
+              cv.pick = "min", verbose = FALSE)
+plot_cv_v(fit)
 }

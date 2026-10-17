@@ -26,6 +26,7 @@ print.rdClass <- function(x, ...) {
   rows_to_show <- min(5, dim(x)[1])
   cols_to_show <- min(5, dim(x)[2])
   print(as.matrix(data)[1:rows_to_show, 1:cols_to_show])
+  invisible(x)
 }
 
 #' Custom `$` operator for rdClass
@@ -33,12 +34,13 @@ print.rdClass <- function(x, ...) {
 #'
 #' @param x An object of class 'rdClass'
 #' @param name The name of the element to extract
+#' @return A data frame containing the underlying data matrix.
 #' @export
 `$.rdClass` <- function(x, name) {
   if (name == "matrix") {
     return(as.data.frame(unclass(x)))
   } else {
-    stop(sprintf("Unknown field '%s'. Only 'matrix' is supported for rdClass."), call. = FALSE)
+    stop(sprintf("Unknown field '%s'. Only 'matrix' is supported for rdClass.", name), call. = FALSE)
   }
 }
 
@@ -148,6 +150,10 @@ plot.rdClass <- function(x, ...) {
 #' @param i Row indices (observations). If \code{NULL}, all rows are included.
 #' @param j Column indices. If \code{NULL}, all columns are included.
 #'
+#' @examples
+#' rd <- rdClass(matrix(rnorm(50), 10, 5))
+#' rd[1:3, 2:4]
+#'
 #' @return A new \code{rdClass} object with subsetted data and inherited attributes.
 #'
 #' @export
@@ -169,9 +175,15 @@ plot.rdClass <- function(x, ...) {
 
   # Subset data matrix
   data <- x$matrix
-  data_sub <- as.matrix(data[i, j])
+  data_sub <- as.matrix(data[i, j, drop = FALSE])
+  dimnames(data_sub) <- NULL
 
-  # Construct and return new hdClass object
+  # Keep only sparsity levels that remain valid for the retained columns
+  sp <- attr(x, "Sparsity_parameter")
+  sp <- sp[sp <= length(j) - 1]
+  if (length(sp) == 0) sp <- 0
+
+  # Construct and return new rdClass object
   rdClass(data = data_sub,
-          Sparsity_parameter = attr(x, "Sparsity_parameter"))
+          Sparsity_parameter = sp)
 }

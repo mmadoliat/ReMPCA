@@ -17,3 +17,9 @@ A new \code{imgClass} object with subsetted data and inherited attributes.
 \description{
 Enables subsetting of an \code{imgClass} object by rows.
 }
+\examples{
+imgs <- lapply(1:3, function(k) matrix(rnorm(16), 4, 4))
+img <- imgClass(imgs)
+img[1:2]
+
+}
