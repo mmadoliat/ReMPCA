@@ -38,34 +38,29 @@ remotes::install_github("mobinapourmoshir/ReMPCA")
 
 ## Data and analysis code
 
-The data and analysis code used for the real-data applications are
-included in this repository to support reproducibility.
+The data and analysis code used for the real-data applications in the
+accompanying paper are included in the package to support
+reproducibility.
 
-### Bike Sharing application
-
-The data files used for the Bike Sharing analysis are available in the
-[`data`](https://mobinapourmoshir.github.io/ReMPCA/data) folder:
-
-- [`bike_day.rda`](https://mobinapourmoshir.github.io/ReMPCA/data/bike_day.rda)
-- [`bike_hour.rda`](https://mobinapourmoshir.github.io/ReMPCA/data/bike_hour.rda)
-
-The complete R code used for the analysis is available in the
-[`inst`](https://mobinapourmoshir.github.io/ReMPCA/inst) folder as
-[`ReMPCA_bike_example.R`](https://mobinapourmoshir.github.io/ReMPCA/inst/ReMPCA_bike_example.R).
-
-### Appliances Energy Prediction application
-
-The data used for the Appliances Energy Prediction analysis are
-available in the
-[`data`](https://mobinapourmoshir.github.io/ReMPCA/data) folder as
-[`energydata_complete.rda`](https://mobinapourmoshir.github.io/ReMPCA/data/energydata_complete.rda).
-
-The complete R code used for the analysis is available in the
-[`inst`](https://mobinapourmoshir.github.io/ReMPCA/inst) folder as
-[`ReMPCA_appliances_example.R`](https://mobinapourmoshir.github.io/ReMPCA/inst/ReMPCA_appliances_example.R).
-
-These materials can be used to reproduce the analyses, tables, and
-figures presented in the paper and supplementary material.
+- **Data.** The UCI Bike Sharing data (`bike_day`, `bike_hour`) and the
+  UCI Appliances Energy Prediction data (`energydata`) are shipped with
+  the package; see
+  [`?bike_day`](https://mobinapourmoshir.github.io/ReMPCA/reference/bike_day.md),
+  [`?bike_hour`](https://mobinapourmoshir.github.io/ReMPCA/reference/bike_hour.md),
+  [`?energydata`](https://mobinapourmoshir.github.io/ReMPCA/reference/energydata.md),
+  or load them with
+  [`read.data()`](https://mobinapourmoshir.github.io/ReMPCA/reference/read.data.md).
+- **Code.** The scripts in
+  [`inst/reproducibility`](https://mobinapourmoshir.github.io/ReMPCA/inst/reproducibility)
+  reproduce the figures of the Bike Sharing application
+  ([`ReMPCA_bike_example.R`](https://mobinapourmoshir.github.io/ReMPCA/inst/reproducibility/ReMPCA_bike_example.R))
+  and of the Appliances Energy Prediction application in the
+  supplementary material
+  ([`Appliances_Energy_Example.R`](https://mobinapourmoshir.github.io/ReMPCA/inst/reproducibility/Appliances_Energy_Example.R)).
+  See
+  [`inst/reproducibility/README.md`](https://mobinapourmoshir.github.io/ReMPCA/inst/reproducibility/README.md)
+  for instructions. After installation the scripts are available from
+  `system.file("reproducibility", package = "ReMPCA")`.
 
 ## Example
 
@@ -314,19 +309,6 @@ produced as follows:
 plot_cv_u(ReMPCATest)
 ```
 
-``` R
-## Warning in arrows(gamma_vals, cv_means - cv_ses, gamma_vals, cv_means + :
-## zero-length arrow is of indeterminate angle and so skipped
-## Warning in arrows(gamma_vals, cv_means - cv_ses, gamma_vals, cv_means + :
-## zero-length arrow is of indeterminate angle and so skipped
-## Warning in arrows(gamma_vals, cv_means - cv_ses, gamma_vals, cv_means + :
-## zero-length arrow is of indeterminate angle and so skipped
-## Warning in arrows(gamma_vals, cv_means - cv_ses, gamma_vals, cv_means + :
-## zero-length arrow is of indeterminate angle and so skipped
-## Warning in arrows(gamma_vals, cv_means - cv_ses, gamma_vals, cv_means + :
-## zero-length arrow is of indeterminate angle and so skipped
-```
-
 ![](reference/figures/README-unnamed-chunk-9-1.png)
 
 ``` r
@@ -358,8 +340,8 @@ plot_gcv_v(ReMPCATest)
 ## All functions
 
 - [`ReMPCA()`](https://mobinapourmoshir.github.io/ReMPCA/reference/ReMPCA.md)
-  : ReMPCA Smooth and Sparse Multivariate Functional Principal Component
-  Analysis
+  : Regularized (Smooth and Sparse) Principal Component Analysis for
+  Hybrid Data
 
 - [`as.fdClass()`](https://mobinapourmoshir.github.io/ReMPCA/reference/as.fdClass.md)
   : Coerce an object of class 'rdClass' or 'imgClass' to class
@@ -477,11 +459,6 @@ plot_gcv_v(ReMPCATest)
 
 - [`read.data()`](https://mobinapourmoshir.github.io/ReMPCA/reference/read.data.md)
   : Read ReMPCA Example Data
-
-- [`scale_hd()`](https://mobinapourmoshir.github.io/ReMPCA/reference/scale_hd.md)
-  :
-
-  Compute Scaling Weights for `hdClass` Object
 
 - [`setSmoothnessParameter()`](https://mobinapourmoshir.github.io/ReMPCA/reference/setSmoothnessParameter.md)
   : Set Smoothness Tuning Parameter

@@ -19,5 +19,5 @@ scale_hd(hd_obj)
 
 ## Value
 
-A numeric vector of weights (length equals the number of variables in
-the hybrid data).
+A list with the block-weighted data (`scaled_hd`) and the numeric vector
+of weights (`weights`, one per variable).

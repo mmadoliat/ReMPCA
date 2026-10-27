@@ -17,7 +17,8 @@ A data frame with 19,735 observations and 29 variables:
 
 - date:
 
-  Date and time of the observation.
+  Date and time of the observation, as a character string
+  (`"YYYY-mm-dd HH:MM:SS"`).
 
 - Appliances:
 

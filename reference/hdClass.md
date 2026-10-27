@@ -18,11 +18,11 @@ hdClass(hdlist, argval = NULL, Smoothing_parameter = 0, Sparsity_parameter = 0)
 - argval:
 
   Optional numeric vector of grid points along the rows. If `NULL`, it
-  defaults to a uniform grid over 0 and 1.
+  defaults to a uniform grid on (0, 1\].
 
 - Smoothing_parameter:
 
-  Smoothing parameter(s) for the rows:
+  Smoothing parameter(s) for the rows (default 0):
 
   - If 0, no smoothing is applied.
 
@@ -32,7 +32,8 @@ hdClass(hdlist, argval = NULL, Smoothing_parameter = 0, Sparsity_parameter = 0)
 
 - Sparsity_parameter:
 
-  Sparsity parameter(s) for the rows:
+  Sparsity parameter(s) for the rows (default 0), i.e. the number of row
+  scores set to zero:
 
   - If 0, no sparsity is applied.
 
@@ -118,12 +119,12 @@ print(hd_obj)
 #>   - Variable 2: 0 
 #> ===================================
 #> First few rows and columns of the data:
-#>                V1         V2          V3         V4         V5
-#> [1,]  0.893165020  2.2729548  0.88986536 -0.1865538 -0.5296437
-#> [2,] -0.376555496  0.1360582 -1.48281332 -0.8122754 -0.6812732
-#> [3,]  0.605884808 -1.9990391  0.44575035 -1.6405817 -0.2024476
-#> [4,] -0.004874726 -0.4205009  1.36977586  0.5079225  1.6844957
-#> [5,] -0.520796373 -0.3784074 -0.02011003  1.7543370 -1.0337732
+#>              V1         V2         V3         V4         V5
+#> [1,]  0.8500435 -1.7997724 -1.9041674  0.1220548  0.5876429
+#> [2,] -0.9253130 -0.2627051  0.3592997  1.0920506 -0.1582996
+#> [3,]  0.8935812 -1.2101419  2.1145349 -2.9722575 -0.2920854
+#> [4,] -0.9410097  0.2044773 -1.1357490  1.1284891 -1.4198990
+#> [5,]  0.5389521 -0.0139941 -0.7962560  1.3120001 -2.1383180
 attr(hd_obj, "variable_types")  # Shows "hd", "rd", etc.
 #> [1] "hd" "rd"
 ```

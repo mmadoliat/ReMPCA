@@ -19,3 +19,7 @@ x$name
 - name:
 
   The name of the element to extract
+
+## Value
+
+A data frame containing the underlying data matrix.

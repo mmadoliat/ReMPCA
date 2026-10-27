@@ -3,8 +3,8 @@
 ## All functions
 
 - [`ReMPCA()`](https://mobinapourmoshir.github.io/ReMPCA/reference/ReMPCA.md)
-  : ReMPCA Smooth and Sparse Multivariate Functional Principal Component
-  Analysis
+  : Regularized (Smooth and Sparse) Principal Component Analysis for
+  Hybrid Data
 
 - [`as.fdClass()`](https://mobinapourmoshir.github.io/ReMPCA/reference/as.fdClass.md)
   : Coerce an object of class 'rdClass' or 'imgClass' to class
@@ -122,11 +122,6 @@
 
 - [`read.data()`](https://mobinapourmoshir.github.io/ReMPCA/reference/read.data.md)
   : Read ReMPCA Example Data
-
-- [`scale_hd()`](https://mobinapourmoshir.github.io/ReMPCA/reference/scale_hd.md)
-  :
-
-  Compute Scaling Weights for `hdClass` Object
 
 - [`setSmoothnessParameter()`](https://mobinapourmoshir.github.io/ReMPCA/reference/setSmoothnessParameter.md)
   : Set Smoothness Tuning Parameter

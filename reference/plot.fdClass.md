@@ -36,15 +36,5 @@ object.
 ``` r
 fd_obj <- fdClass(matrix(sin(1:100 / 10), nrow = 10, ncol = 10))
 plot(fd_obj)
-#> Warning: There should be an equal number of grid points and columns. 'argval' is set to NULL!
-#> Warning: There should be an equal number of grid points and columns. 'argval' is set to NULL!
-#> Warning: There should be an equal number of grid points and columns. 'argval' is set to NULL!
-#> Warning: There should be an equal number of grid points and columns. 'argval' is set to NULL!
-#> Warning: There should be an equal number of grid points and columns. 'argval' is set to NULL!
-#> Warning: There should be an equal number of grid points and columns. 'argval' is set to NULL!
-#> Warning: There should be an equal number of grid points and columns. 'argval' is set to NULL!
-#> Warning: There should be an equal number of grid points and columns. 'argval' is set to NULL!
-#> Warning: There should be an equal number of grid points and columns. 'argval' is set to NULL!
-#> Warning: There should be an equal number of grid points and columns. 'argval' is set to NULL!
 
 ```
