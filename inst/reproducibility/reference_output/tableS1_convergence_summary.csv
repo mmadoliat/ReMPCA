@@ -1,0 +1,7 @@
+"method","noise","n_datasets","pct_converged_svd","median_iter_svd","max_iter_svd","pct_random_same_solution","pct_runs_random_better_fit","nonconv_fit_change_min","nonconv_fit_change_max","median_rate","max_sin_closed_form_converged"
+"Two-way Smooth","Low",60,100,4,5,100,0,NA,NA,0.0538258638086492,6.1691527201189e-07
+"Two-way Smooth+Sparse","Low",60,100,4,5,100,0,NA,NA,NA,NA
+"Two-way Smooth","Medium",60,100,12,28,100,0,NA,NA,0.36330527738186,1.89718995442166e-05
+"Two-way Smooth+Sparse","Medium",60,100,12,61,95.75,0,NA,NA,NA,NA
+"Two-way Smooth","High",60,90,34,100,85.4166666666667,0,0.000142675747930145,0.00278104307626419,0.732698040035264,8.10824542439659e-05
+"Two-way Smooth+Sparse","High",60,90,26,100,72.25,0,0.00800190135970641,0.241725566930605,NA,NA

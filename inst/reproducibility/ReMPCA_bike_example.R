@@ -24,6 +24,13 @@
 # Figures and fitted objects are written to the folder given by the
 # environment variable REMPCA_OUTPUT_DIR (default: ./ReMPCA_output).
 # Additional packages required: tidyverse, lubridate, patchwork.
+#
+# Revision 2 (JDS): the non-functional block is the one listed in the paper's
+# variable table (daily temperature, apparent temperature, humidity and wind
+# speed; season indicators; weekday/weekend indicators), the fixed sparsity
+# levels of that block are set accordingly (3 for PC1, 5 for PC2), and all
+# figures are written at their final print size (6.3 in wide) without
+# embedded titles.
 ###############################################################################
 
 ###############################################################################
@@ -126,22 +133,20 @@ regular_df <- day_complete |>
   transmute(
     date = dteday,
     season = factor(season),
-    year = factor(yr),
-    month = factor(mnth),
-    holiday = factor(holiday),
-    weekday = factor(weekday),
-    workingday = factor(workingday),
-    weathersit = factor(weathersit),
+    daytype = factor(if_else(weekday %in% c(0, 6), "Weekend", "Weekday"),
+                     levels = c("Weekday", "Weekend")),
     temp_day = temp,
     atemp_day = atemp,
     hum_day = hum,
     windspeed_day = windspeed
   )
 
-X_regular_raw <- model.matrix(
-  ~ season + year + month + holiday + weekday + workingday + weathersit +
-    temp_day + atemp_day + hum_day + windspeed_day - 1,
-  data = regular_df
+# Non-functional block used in the paper (Table 3): daily weather summaries,
+# season indicators and day-type (weekday / weekend) indicators.
+X_regular_raw <- cbind(
+  model.matrix(~ season - 1, data = regular_df),
+  model.matrix(~ daytype - 1, data = regular_df),
+  as.matrix(regular_df[, c("temp_day", "atemp_day", "hum_day", "windspeed_day")])
 )
 
 regular_feature_names <- colnames(X_regular_raw)
@@ -307,7 +312,7 @@ fd_wind_pc1 <- fdClass(
 
 rd_daily_pc1 <- rdClass(
   data = blocks_original$Daily_covariates,
-  Sparsity_parameter = 8L
+  Sparsity_parameter = 3L
 )
 
 bike_hd_pc1 <- hdClass(
@@ -349,7 +354,7 @@ bike_fit_pc1 <- ReMPCA(
     2L,
     0L,
     0L,
-    8L
+    3L
   ),
   smooth_tuning_v = list(
     2^-2,
@@ -436,7 +441,7 @@ fd_wind_pc2 <- fdClass(
 
 rd_daily_pc2 <- rdClass(
   data = blocks_residual_after_pc1$Daily_covariates,
-  Sparsity_parameter = 11L
+  Sparsity_parameter = 5L
 )
 
 bike_hd_pc2 <- hdClass(
@@ -478,7 +483,7 @@ bike_fit_pc2_residual <- ReMPCA(
     0L,
     10L,
     0L,
-    11L
+    5L
   ),
   smooth_tuning_v = list(
     2^-3,
@@ -503,6 +508,19 @@ bike_fit_pc_specific <- list(
     bike_fit_pc2_residual$PCFunctions[[1]]
   )
 )
+
+# Display sign convention (signs of PCs are arbitrary): orient each HPCA
+# component so that its loading on the daily temperature covariate is negative,
+# as in the published figures; ReHPCA components are then aligned with HPCA.
+i_temp <- which(colnames(X_regular_raw) == "temp_day")
+for (pc in seq_len(2)) {
+  if (bike_fit_base$PCFunctions[[pc]][[5]][i_temp] > 0) {
+    bike_fit_base$PCScores[, pc] <- -bike_fit_base$PCScores[, pc]
+    for (b in seq_along(bike_fit_base$PCFunctions[[pc]])) {
+      bike_fit_base$PCFunctions[[pc]][[b]] <- -bike_fit_base$PCFunctions[[pc]][[b]]
+    }
+  }
+}
 
 for (pc in seq_len(2)) {
 
@@ -933,13 +951,14 @@ regular_plot_all <- regular_loading_df |>
     Feature_raw = as.character(Feature)
   )
 
-compact_theme <- theme_bw(base_size = 9.5) +
+compact_theme <- theme_bw(base_size = 8) +
   theme(
-    plot.title = element_text(face = "bold", size = 10.5),
+    plot.title = element_text(face = "bold", size = 8.5, margin = margin(0, 0, 2, 0)),
+    plot.title.position = "plot",
     plot.subtitle = element_blank(),
     legend.position = "bottom",
     legend.title = element_blank(),
-    strip.text = element_text(face = "bold", size = 8.5),
+    strip.text = element_text(face = "bold", size = 8),
     strip.background = element_rect(
       fill = "grey92",
       color = "grey45",
@@ -954,8 +973,10 @@ compact_theme <- theme_bw(base_size = 9.5) +
       color = "grey40",
       linewidth = 0.30
     ),
-    axis.title = element_text(size = 9),
-    axis.text = element_text(size = 7.5, color = "black"),
+    axis.title = element_text(size = 8),
+    axis.text = element_text(size = 7, color = "black"),
+    legend.text = element_text(size = 8),
+    legend.key.width = grid::unit(0.8, "cm"),
     plot.margin = margin(3, 5, 3, 5)
   )
 
@@ -1031,7 +1052,7 @@ p_u_time <- ggplot(
     )
   ) +
   labs(
-    title = "u direction: PC scores over ordered days",
+    title = "(a) Row scores over calendar days",
     x = NULL,
     y = NULL
   ) +
@@ -1049,9 +1070,9 @@ p_u_label <- ggplot() +
     "text",
     x = 1,
     y = 0.5,
-    label = "u score",
+    label = "Score",
     angle = 90,
-    size = 3.0,
+    size = 2.8,
     color = "black"
   ) +
   coord_cartesian(
@@ -1096,7 +1117,7 @@ p_v_function <- ggplot(
     breaks = method_levels
   ) +
   scale_x_continuous(
-    breaks = c(0, 6, 12, 18, 23),
+    breaks = c(0, 6, 12, 18),
     expand = expansion(mult = c(0.01, 0.01))
   ) +
   scale_y_continuous(
@@ -1106,16 +1127,18 @@ p_v_function <- ggplot(
   ) +
   guides(color = "none") +
   labs(
-    title = "v direction: functional PC loading curves",
+    title = "(b) Functional loadings (hour of day)",
     x = "Hour of day",
     y = "PC loading"
   ) +
   compact_theme +
   theme(
     strip.placement = "outside",
-    strip.text.y.left = element_text(angle = 0),
+    strip.text.y.left = element_text(angle = 0, size = 7.5, face = "bold",
+                                     margin = margin(0, 3, 0, 3)),
+    panel.spacing.x = grid::unit(0.25, "cm"),
     axis.text.x = element_text(size = 7),
-    axis.text.y = element_text(size = 7)
+    axis.text.y = element_text(size = 6.5)
   )
 
 ###############################################################################
@@ -1154,6 +1177,8 @@ regular_plot_all <- regular_plot_all |>
       Feature_raw == "holiday0" ~ "Not holiday",
       Feature_raw == "holiday1" ~ "Holiday",
 
+      Feature_raw == "daytypeWeekday" ~ "Weekday",
+      Feature_raw == "daytypeWeekend" ~ "Weekend",
       Feature_raw == "weekday0" ~ "Sunday",
       Feature_raw == "weekday1" ~ "Monday",
       Feature_raw == "weekday2" ~ "Tuesday",
@@ -1243,18 +1268,20 @@ p_v_regular <- ggplot(
   ) +
   scale_x_continuous(
     breaks = scales::breaks_pretty(n = 3),
-    labels = scales::label_number(accuracy = 0.01)
+    labels = function(x) as.character(round(x, 3)),
+    expand = expansion(mult = c(0.10, 0.10))
   ) +
   guides(fill = "none") +
   labs(
-    title = "v direction: regular covariate loadings",
+    title = "(c) Non-functional loadings",
     x = "PC loading",
     y = NULL
   ) +
   compact_theme +
   theme(
-    axis.text.y = element_text(size = 6.3),
-    axis.text.x = element_text(size = 7),
+    axis.text.y = element_text(size = 7),
+    axis.text.x = element_text(size = 6.5),
+    panel.spacing.x = grid::unit(0.35, "cm"),
     panel.grid.major.y = element_line(
       color = "grey92",
       linewidth = 0.20
@@ -1268,18 +1295,18 @@ p_v_regular <- ggplot(
 
 p_u_top <- (p_u_label | p_u_time) +
   plot_layout(
-    widths = c(0.035, 1)
+    widths = c(0.03, 1)
   )
 
 p_bottom_v <- (p_v_function | p_v_regular) +
   plot_layout(
-    widths = c(1.65, 1.00),
+    widths = c(1.32, 1.00),
     guides = "collect"
   )
 
 p_bike_combined <- (p_u_top / p_bottom_v) +
   plot_layout(
-    heights = c(0.55, 1.80),
+    heights = c(0.62, 1.80),
     guides = "collect"
   ) &
   theme(
@@ -1598,21 +1625,19 @@ pm_cols <- c(
   "Mean + PC" = "#009E73"
 )
 
-pm_theme <- theme_bw(base_size = 10) +
+pm_theme <- theme_bw(base_size = 8) +
   theme(
-    plot.title = element_text(
-      face = "bold",
-      size = 16
-    ),
+    plot.title = element_blank(),
     plot.subtitle = element_blank(),
     strip.text.x = element_text(
       face = "bold",
-      size = 10
+      size = 7.5,
+      margin = margin(2, 0, 2, 0)
     ),
     strip.text.y.left = element_text(
       angle = 0,
       face = "bold",
-      size = 10
+      size = 7.5
     ),
     strip.background = element_rect(
       fill = "grey92",
@@ -1629,106 +1654,66 @@ pm_theme <- theme_bw(base_size = 10) +
       color = "grey40",
       linewidth = 0.30
     ),
-    axis.title = element_text(size = 11),
+    axis.title = element_text(size = 8),
     axis.text = element_text(
-      size = 9,
+      size = 6.5,
       color = "black"
     ),
+    panel.spacing = grid::unit(0.12, "cm"),
     legend.position = "bottom",
     legend.title = element_blank(),
-    legend.text = element_text(size = 10),
-    legend.key.width = grid::unit(1.15, "cm"),
-    legend.spacing.x = grid::unit(0.35, "cm"),
-    plot.margin = margin(6, 8, 6, 8)
+    legend.text = element_text(size = 8),
+    legend.key.width = grid::unit(0.9, "cm"),
+    legend.spacing.x = grid::unit(0.25, "cm"),
+    legend.margin = margin(0, 0, 0, 0),
+    plot.margin = margin(3, 4, 3, 4)
   )
 
-p_mean_pm_rehpca <- ggplot() +
+pm_lines_df <- bind_rows(
+  mean_line_df |> mutate(Curve = as.character(Curve)),
+  pm_symbol_df_raw |> select(-Symbol)
+) |>
+  mutate(
+    Curve = factor(Curve, levels = c("Mean - PC", "Mean", "Mean + PC")),
+    PC = factor(PC, levels = pc_order),
+    Functional_Block = factor(Functional_Block, levels = functional_order)
+  )
 
-  geom_line(
-    data = legend_line_df,
-    aes(
-      x = Hour,
-      y = Value,
-      color = Curve,
-      group = legend_group
-    ),
-    linewidth = 1.35,
-    alpha = 0,
-    show.legend = TRUE
-  ) +
-
-  geom_line(
-    data = mean_line_df,
-    aes(
-      x = Hour,
-      y = Value,
-      color = Curve
-    ),
-    linewidth = 1.10,
-    lineend = "round",
-    show.legend = FALSE
-  ) +
-
-  geom_text(
-    data = pm_symbol_df,
-    aes(
-      x = Hour,
-      y = Value,
-      color = Curve,
-      label = Symbol
-    ),
-    size = 2.8,
-    fontface = "plain",
-    show.legend = FALSE
-  ) +
-
+# Mean curve (black) and mean plus / minus one score standard deviation times
+# the ReHPCA loading (solid green / dashed red), on the original hourly scale.
+pm_labels <- c("Mean - PC" = "Mean - PC", "Mean" = "Mean", "Mean + PC" = "Mean + PC")
+p_mean_pm_rehpca <- ggplot(
+  pm_lines_df,
+  aes(x = Hour, y = Value, color = Curve, linetype = Curve, linewidth = Curve)
+) +
+  geom_line(lineend = "round") +
   facet_wrap(
     vars(PC, Functional_Block),
     nrow = 2,
     scales = "free_y",
-    labeller = labeller(
-      PC = label_value,
-      Functional_Block = label_value
-    )
+    labeller = labeller(.multi_line = FALSE)
   ) +
-
-  scale_color_manual(
-    values = pm_cols,
-    breaks = c(
-      "Mean - PC",
-      "Mean",
-      "Mean + PC"
-    ),
-    drop = FALSE
+  scale_color_manual(values = pm_cols, labels = pm_labels, drop = FALSE) +
+  scale_linetype_manual(
+    values = c("Mean - PC" = "22", "Mean" = "solid", "Mean + PC" = "solid"),
+    labels = pm_labels, drop = FALSE
   ) +
-
+  scale_linewidth_manual(
+    values = c("Mean - PC" = 0.6, "Mean" = 0.7, "Mean + PC" = 0.6),
+    labels = pm_labels, drop = FALSE
+  ) +
   scale_x_continuous(
     breaks = c(0, 6, 12, 18, 23),
     expand = expansion(mult = c(0.02, 0.02))
   ) +
-
   scale_y_continuous(
     breaks = scales::breaks_pretty(n = 4),
-    expand = expansion(mult = c(0.10, 0.10))
+    expand = expansion(mult = c(0.08, 0.08))
   ) +
-
-  guides(
-    color = guide_legend(
-      order = 1,
-      override.aes = list(
-        alpha = 1,
-        linewidth = 1.5,
-        linetype = "solid"
-      )
-    )
-  ) +
-
   labs(
-    title = "Mean curves plus and minus ReHPCA functional PCs",
     x = "Hour of day",
     y = NULL
   ) +
-
   pm_theme
 
 print(p_mean_pm_rehpca)
@@ -1905,16 +1890,13 @@ fill_limits <- c(
   fill_upper
 )
 
-heatmap_theme <- theme_minimal(base_size = 12) +
+heatmap_theme <- theme_minimal(base_size = 8) +
   theme(
-    plot.title = element_text(
-      face = "bold",
-      size = 15
-    ),
+    plot.title = element_blank(),
     plot.subtitle = element_blank(),
     strip.text = element_text(
       face = "bold",
-      size = 12
+      size = 8.5
     ),
     strip.background = element_rect(
       fill = "grey92",
@@ -1922,11 +1904,10 @@ heatmap_theme <- theme_minimal(base_size = 12) +
       linewidth = 0.25
     ),
     axis.title = element_text(
-      face = "bold",
-      size = 11
+      size = 8.5
     ),
     axis.text = element_text(
-      size = 8,
+      size = 7,
       color = "black"
     ),
     panel.grid = element_blank(),
@@ -1935,31 +1916,50 @@ heatmap_theme <- theme_minimal(base_size = 12) +
       "cm"
     ),
     legend.position = "bottom",
-    legend.title = element_text(size = 10),
-    legend.text = element_text(size = 8),
+    legend.title = element_text(size = 8, vjust = 0.85),
+    legend.text = element_text(size = 7),
     legend.key.width = grid::unit(
-      1.7,
+      1.4,
       "cm"
     ),
     legend.key.height = grid::unit(
-      0.23,
+      0.22,
       "cm"
     ),
-    plot.margin = margin(5, 8, 5, 8)
+    legend.margin = margin(0, 0, 0, 0),
+    plot.margin = margin(3, 4, 3, 4)
   )
+
+# Rows are indexed by the analysed (complete) days, so that the days removed
+# for incomplete hourly records do not appear as blank stripes; the axis is
+# labelled with calendar dates.
+day_dates <- sort(unique(heatmap_fit_df$date))
+heatmap_fit_df <- heatmap_fit_df |>
+  mutate(
+    day_index = match(date, day_dates),
+    Method = factor(
+      recode(as.character(Method), "HPCA fitted" = "HPCA", "ReHPCA fitted" = "ReHPCA"),
+      levels = c("HPCA", "ReHPCA")
+    )
+  )
+quarter_starts <- seq(
+  lubridate::floor_date(min(day_dates), "quarter"),
+  max(day_dates),
+  by = "3 months"
+)
+y_breaks <- vapply(quarter_starts, function(d) which(day_dates >= d)[1], integer(1))
+y_breaks <- y_breaks[!is.na(y_breaks)]
+y_breaks <- y_breaks[c(diff(y_breaks) >= 50, TRUE)]
 
 p_fitted_heatmaps <- ggplot(
   heatmap_fit_df,
   aes(
     x = hour,
-    y = date,
+    y = day_index,
     fill = log_count
   )
 ) +
-  geom_tile(
-    width = 1,
-    height = 1
-  ) +
+  geom_raster() +
   facet_wrap(
     ~ Method,
     nrow = 1
@@ -1968,7 +1968,7 @@ p_fitted_heatmaps <- ggplot(
     colors = my_heat_palette,
     limits = fill_limits,
     oob = scales::squish,
-    name = expression(log(1 + count))
+    name = "log(1 + count)"
   ) +
   scale_x_continuous(
     breaks = seq(
@@ -1978,15 +1978,12 @@ p_fitted_heatmaps <- ggplot(
     ),
     expand = c(0, 0)
   ) +
-  scale_y_date(
-    date_breaks = "3 months",
-    date_labels = "%Y-%m",
-    expand = expansion(
-      mult = c(0.002, 0.002)
-    )
+  scale_y_continuous(
+    breaks = y_breaks,
+    labels = format(day_dates[y_breaks], "%Y-%m"),
+    expand = c(0, 0)
   ) +
   labs(
-    title = "Daily-hour fitted heatmaps of bike-rental demand",
     x = "Hour of day",
     y = "Date"
   ) +
@@ -2047,12 +2044,14 @@ try(
 out_dir <- Sys.getenv("REMPCA_OUTPUT_DIR", unset = file.path(getwd(), "ReMPCA_output"))
 dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
 
+# Figures are written at their final print size (JDS text width = 6.3 in), so
+# that the font sizes set above are the sizes that appear in the paper.
 ggsave(file.path(out_dir, "bike_compare_u_and_v_HPCA_ReHPCA.pdf"),
-       p_bike_combined, width = 12, height = 9)
+       p_bike_combined, width = 6.3, height = 5.4)
 ggsave(file.path(out_dir, "heatmap_HPCA_vs_ReHPCA_fitted.pdf"),
-       p_fitted_heatmaps, width = 12, height = 6)
+       p_fitted_heatmaps, width = 6.3, height = 3.4)
 ggsave(file.path(out_dir, "bike_mean_ReHPCA.pdf"),
-       p_mean_pm_rehpca, width = 12, height = 6)
+       p_mean_pm_rehpca, width = 6.3, height = 3.6)
 
 saveRDS(
   list(

@@ -1,0 +1,8 @@
+"method","time"
+"No penalty",1.32650000000001
+"Two-way Smooth",4.0025
+"Two-way Smooth+Sparse",16.401
+"Pre-smoothing HPCA",1.38
+"HFV-PCA",1.09650000000001
+"PMD",0.575999999999965
+"Two-way rSVD",0.880000000000009
